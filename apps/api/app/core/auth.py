@@ -91,7 +91,7 @@ def send_token(db, request, user):
     db.commit()
     try:
         request.app.state.mailer.send_verification(user.email, raw)
-    except (OSError, Exception) as exc:
+    except Exception as exc:
         # Do not log SMTP exception text: it may include recipients or credentials.
         logger.warning(
             "verification_delivery_failed request_id=%s type=%s",

@@ -1,0 +1,67 @@
+name: Core checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: signal
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: signal_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U signal -d signal_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/api/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check . && ruff format --check .
+      - run: pytest -q
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://signal:test-only@localhost:5432/signal_test
+      - run: alembic upgrade head && alembic check
+        env:
+          DATABASE_URL: postgresql+psycopg://signal:test-only@localhost:5432/signal_test
+      - run: PYTHONPATH=. python scripts/export_contracts.py && git diff --exit-code -- ../../contracts
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run api:types && git diff --exit-code -- src/shared/api.generated.ts
+      - run: npm run build
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+      - run: docker compose up -d --build --wait
+      - run: npm ci && npx playwright install --with-deps chromium && npm run test:e2e
+        working-directory: apps/web
+      - if: failure()
+        run: docker compose logs --tail 100
+      - if: always()
+        run: docker compose down
+

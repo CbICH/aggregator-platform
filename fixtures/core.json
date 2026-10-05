@@ -1,0 +1,20 @@
+{
+  "description": "Синтетические контрактные данные. Не используются как готовые результаты в приложении.",
+  "verified_categories": [
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000001",
+      "category_code": "backend:middle", "specialization": "backend", "verified_grade": "middle",
+      "test_score": 92, "assessment_id": "20000000-0000-4000-8000-000000000001",
+      "assessment_version": "backend-middle-v1",
+      "assigned_at": "2026-10-05T09:00:00Z", "next_change_at": "2027-01-03T09:00:00Z",
+      "skills": [{"id": "api.idempotency", "score": 92, "source": "assessment"}]
+    }
+  ],
+  "public_profiles": [
+    {"candidate_id": "10000000-0000-4000-8000-000000000001", "display_name": "Кандидат 001", "declared_stack": ["python", "postgresql"], "experience_months": 24, "roles": ["backend"]}
+  ],
+  "fsp": {"status": "not_linked", "signal": 0, "source": "demo"},
+  "salary": {"min": 180000, "max": 230000, "currency": "RUB", "period": "month", "tax_basis": "gross"},
+  "error": {"error": {"code": "ROLE_FORBIDDEN", "message": "Действие недоступно для этой роли", "fields": null}, "request_id": "40000000-0000-4000-8000-000000000001"}
+}
+

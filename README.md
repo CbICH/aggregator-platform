@@ -1,0 +1,120 @@
+# ФСП Сигнал
+
+Платформа обратного подбора ИТ-специалистов. Реализован первый этап участника **A**: общий каркас, авторизация и инфраструктура для независимой разработки B/C/D.
+
+## Что уже работает
+
+- Регистрация кандидата и работодателя с фиксацией согласия на обработку данных.
+- Отправка письма по SMTP, подтверждение email, повторная отправка и восстановление после сбоя SMTP.
+- Пароли Argon2id, серверные сессии в БД, вход/выход, защита CSRF и проверка Origin.
+- Проверка ролей и подтверждённого email, единые ошибки, request ID, журнал событий и лимиты запросов.
+- React-интерфейс регистрации, подтверждения адреса, входа и общего кабинета.
+- PostgreSQL, Alembic, локальный Mailpit, Docker Compose, OpenAPI и контрактные DTO.
+- Автоматические проверки API, сборки frontend и браузерного сценария обеих ролей.
+
+Функциональные модули B/C/D подключены как пустые маршрутизаторы и манифесты. Тестирование навыков, подбор, профиль, PDF и приглашения ещё предстоит реализовать; интерфейс не выдаёт их за готовые функции. Категории в справочнике неактивны до появления проверенных тестов.
+
+## Запуск в Docker
+
+Нужны работающий Docker Engine/Desktop и Docker Compose v2.
+
+```sh
+cp .env.example .env
+python3 scripts/dev.py
+```
+
+- Приложение: http://localhost:8080
+- Локальные письма: http://localhost:8025
+- Swagger: http://localhost:8080/api/docs
+- OpenAPI: http://localhost:8080/api/openapi.json
+- Проверка готовности: http://localhost:8080/api/v1/ready
+
+Зарегистрируйтесь с вымышленным адресом, откройте письмо в Mailpit, перейдите по ссылке и нажмите «Подтвердить email». Затем войдите с указанным паролем. В обеих ролях работают одинаковые правила авторизации. Пароль — от 12 до 128 символов. Готовых общих паролей и входа в обход проверки нет.
+
+```sh
+docker compose ps
+docker compose logs --tail 100 api
+docker compose down
+```
+
+База сохраняется в Docker volume. `down` не удаляет данные. Изменение кода в Docker применяется через повторную сборку; для горячей перезагрузки используйте локальный режим ниже.
+
+`scripts/dev.py` выполняет `docker compose up -d --build --wait`. Для пути с кириллицей он автоматически собирает образ из временной копии исходников с ASCII-путём: это устраняет ошибку BuildKit `x-docker-expose-session-sharedkey ... non-printable ASCII`. Рабочая папка не перемещается, секреты и node_modules в копию не включаются. В ASCII-папке можно вызывать Docker Compose напрямую.
+
+## Локальная разработка с горячей перезагрузкой
+
+Нужны Python 3.12 и Node.js 22.12+. Команды выполняются из корня проекта, если не указано иное.
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r apps/api/requirements-dev.txt
+docker compose up -d db mailpit
+```
+
+Для API, в отдельном терминале:
+
+```sh
+cd apps/api
+cp .env.example .env
+# Для локального PostgreSQL замените DATABASE_URL в .env на:
+# postgresql+psycopg://signal:signal-local-only@localhost:54329/signal
+../../.venv/bin/alembic upgrade head
+../../.venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+Пример `.env` API по умолчанию использует локальный SQLite для быстрого старта. PostgreSQL остаётся основной СУБД Compose и CI. На Windows активируйте `.venv\Scripts\Activate.ps1` и вызывайте `python`, `alembic`, `uvicorn` из активированного окружения; Docker-команды одинаковы.
+
+Для frontend, в другом терминале:
+
+```sh
+cd apps/web
+npm ci
+npm run dev
+```
+
+Откройте http://localhost:5173. Vite проксирует `/api` на API, поэтому браузер работает с одним origin. `PUBLIC_APP_URL` должен совпадать с адресом frontend. Не запускайте API из Compose и локальный API на одном порту одновременно: при переходе на локальный режим остановите `docker compose stop web api`.
+
+## Проверки
+
+```sh
+.venv/bin/ruff check apps/api
+.venv/bin/ruff format --check apps/api
+PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests -q
+PYTHONPATH=apps/api .venv/bin/python apps/api/scripts/export_contracts.py
+cd apps/web
+npm run api:types
+npm run build
+```
+
+После запуска стенда через `python3 scripts/dev.py`:
+
+```sh
+cd apps/web
+npx playwright install chromium
+npm run test:e2e
+```
+
+E2E регистрирует два вымышленных аккаунта, читает локальные письма Mailpit, подтверждает email, входит, обновляет страницу и выходит. Этот тест предназначен для локального стенда. Проверки API по умолчанию используют временный SQLite; `TEST_DATABASE_URL` позволяет проверить отдельную PostgreSQL-базу с именем, заканчивающимся `_test`. Тесты очищают только эту тестовую базу; рабочую БД передавать нельзя.
+
+## Команда и дальнейшая работа
+
+| Владелец | Код | Начальная задача |
+|---|---|---|
+| A | `app/core`, `app/main.py`, `src/app`, `infra`, CI | Общие зависимости, сборка, интеграция |
+| B | `app/modules/assessment`, `src/features/assessment` | Опрос → один реальный тест → подтверждённая категория |
+| C | `app/modules/matching`, `app/modules/fsp`, `src/features/matching` | Компания → потребность → подборка на общих фикстурах |
+| D | `app/modules/profiles`, `app/modules/invitations`, `src/features/profile`, `src/features/invitations` | Профиль → приглашение → решение и доступ к контактам |
+
+- [Инструкция подключения модулей](docs/integration.md)
+- [Архитектура и решения](docs/architecture.md)
+- [Статус блока A](docs/status-A.md)
+- [План команды](План-разработки-ФСП-Сигнал.md)
+- [Исходные задачи](plan/02-Задачи-команды.md)
+
+Конкретные версии Python-зависимостей и хеши зафиксированы в `apps/api/requirements*.txt`, frontend — в `apps/web/package-lock.json`. Сгенерированные API-схемы лежат в `contracts`.
+
+## Публичное размещение
+
+Текущий Compose — локальный стенд: порты привязаны к `127.0.0.1`, Mailpit доступен только локально. Для внешнего размещения нужны выбранный сервер и домен, HTTPS, собственный SMTP с TLS, пароль БД, `APP_ENV=production`, `COOKIE_SECURE=true` и соответствующий `PUBLIC_APP_URL`. В production конфигурация проверяется при старте; SQLite и SMTP без TLS не принимаются.
+
+Перед публичным использованием нужно заменить краткий демонстрационный текст согласия полноценными документами оператора, проверить политику хранения/удаления и подключить согласия публикации из D. Демонстрационный стенд предназначен для синтетических данных. Публичный хостинг из этого репозитория автоматически не создаётся.

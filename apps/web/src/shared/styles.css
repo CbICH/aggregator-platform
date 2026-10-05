@@ -1,4 +1,3 @@
-@import url('');
 :root { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #272333; background: #faf9fc; font-synthesis: none; text-rendering: optimizeLegibility; --purple: #591784; --line: #e5dfeb; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }

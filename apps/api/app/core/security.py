@@ -4,7 +4,7 @@ from typing import Annotated
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
-from fastapi import Depends, Request, Security
+from fastapi import Depends, Header, Request, Security
 from fastapi.security import APIKeyCookie
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -37,6 +37,13 @@ def current_actor(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
     token: Annotated[str | None, Security(session_cookie)] = None,
+    csrf_header: Annotated[
+        str | None,
+        Header(
+            alias="X-CSRF-Token",
+            description="Required for authenticated mutations; copy signal_csrf cookie",
+        ),
+    ] = None,
 ) -> ActorContext:
     if not token or len(token) > 200:
         raise AppError(401, "AUTH_REQUIRED", "Войдите в аккаунт")
@@ -51,7 +58,7 @@ def current_actor(
     if user is None:
         raise AppError(401, "AUTH_REQUIRED", "Войдите в аккаунт")
     if request.method not in {"GET", "HEAD", "OPTIONS"}:
-        csrf = request.headers.get("X-CSRF-Token", "")
+        csrf = csrf_header or ""
         if not csrf or not secrets.compare_digest(digest(csrf), record.csrf_hash):
             raise AppError(403, "CSRF_INVALID", "Обновите страницу и повторите действие")
     request.state.session = record

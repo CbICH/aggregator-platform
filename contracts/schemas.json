@@ -1,0 +1,347 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "user_id": {
+          "format": "uuid",
+          "title": "User Id",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "email_verified": {
+          "title": "Email Verified",
+          "type": "boolean"
+        },
+        "company_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Id"
+        }
+      },
+      "required": [
+        "user_id",
+        "role",
+        "email_verified"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "CandidateContacts": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
+        }
+      },
+      "required": [
+        "candidate_id"
+      ],
+      "title": "CandidateContacts",
+      "type": "object"
+    },
+    "CandidatePublic": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "declared_stack": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Declared Stack",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roles",
+          "type": "array"
+        },
+        "experience_months": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Experience Months",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "display_name",
+        "declared_stack"
+      ],
+      "title": "CandidatePublic",
+      "type": "object"
+    },
+    "CompanySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "format": "uuid",
+          "title": "Company Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "contact": {
+          "title": "Contact",
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "name",
+        "contact"
+      ],
+      "title": "CompanySummary",
+      "type": "object"
+    },
+    "FspEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "not_linked",
+            "linked_empty",
+            "linked_with_data",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "signal": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Signal",
+          "type": "number"
+        },
+        "source": {
+          "default": "demo",
+          "enum": [
+            "demo",
+            "registry"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "fetched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fetched At"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "FspEvidence",
+      "type": "object"
+    },
+    "Role": {
+      "enum": [
+        "candidate",
+        "employer"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "Salary": {
+      "additionalProperties": false,
+      "properties": {
+        "min": {
+          "exclusiveMinimum": 0,
+          "title": "Min",
+          "type": "integer"
+        },
+        "max": {
+          "exclusiveMinimum": 0,
+          "title": "Max",
+          "type": "integer"
+        },
+        "currency": {
+          "const": "RUB",
+          "default": "RUB",
+          "title": "Currency",
+          "type": "string"
+        },
+        "period": {
+          "const": "month",
+          "default": "month",
+          "title": "Period",
+          "type": "string"
+        },
+        "tax_basis": {
+          "const": "gross",
+          "default": "gross",
+          "title": "Tax Basis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "title": "Salary",
+      "type": "object"
+    },
+    "SkillEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "source": {
+          "const": "assessment",
+          "default": "assessment",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "score"
+      ],
+      "title": "SkillEvidence",
+      "type": "object"
+    },
+    "VerifiedCategory": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "category_code": {
+          "title": "Category Code",
+          "type": "string"
+        },
+        "specialization": {
+          "enum": [
+            "backend",
+            "qa"
+          ],
+          "title": "Specialization",
+          "type": "string"
+        },
+        "verified_grade": {
+          "enum": [
+            "junior",
+            "middle",
+            "senior"
+          ],
+          "title": "Verified Grade",
+          "type": "string"
+        },
+        "test_score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Test Score",
+          "type": "number"
+        },
+        "assessment_id": {
+          "format": "uuid",
+          "title": "Assessment Id",
+          "type": "string"
+        },
+        "assessment_version": {
+          "title": "Assessment Version",
+          "type": "string"
+        },
+        "assigned_at": {
+          "format": "date-time",
+          "title": "Assigned At",
+          "type": "string"
+        },
+        "next_change_at": {
+          "format": "date-time",
+          "title": "Next Change At",
+          "type": "string"
+        },
+        "skills": {
+          "items": {
+            "$ref": "#/$defs/SkillEvidence"
+          },
+          "title": "Skills",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "category_code",
+        "specialization",
+        "verified_grade",
+        "test_score",
+        "assessment_id",
+        "assessment_version",
+        "assigned_at",
+        "next_change_at",
+        "skills"
+      ],
+      "title": "VerifiedCategory",
+      "type": "object"
+    }
+  },
+  "title": "ФСП Сигнал: shared contracts v0.1"
+}

@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
@@ -59,7 +60,17 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
                 request, 403, "ORIGIN_FORBIDDEN", "Источник запроса не разрешён"
             )
         else:
-            response = await call_next(request)
+            try:
+                response = await call_next(request)
+            except Exception as exc:
+                logging.getLogger(__name__).error(
+                    "request_failed request_id=%s type=%s",
+                    request.state.request_id,
+                    type(exc).__name__,
+                )
+                response = error_response(
+                    request, 500, "INTERNAL_ERROR", "Не удалось выполнить запрос"
+                )
         response.headers["X-Request-ID"] = request.state.request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
