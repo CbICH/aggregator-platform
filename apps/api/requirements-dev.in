@@ -1,0 +1,7 @@
+-r requirements.in
+pytest>=8,<10
+httpx>=0.28,<1
+ruff>=0.9,<1
+aiosmtpd>=1.4,<2
+pip-tools>=7,<8
+
