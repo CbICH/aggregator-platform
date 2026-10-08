@@ -3,12 +3,15 @@
 Валидация входных/выходных данных для эндпоинтов работодателя.
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, EmailStr, Field
 
 from app.contracts.schemas import DTO
+
+
+# --- Company ---------------------------------------------------------------
 
 
 class CompanyCreate(DTO):
@@ -48,3 +51,69 @@ class CompanyResponse(DTO):
     contact_email: EmailStr
     created_at: AwareDatetime
     updated_at: AwareDatetime
+
+
+# --- Catalog / Categories --------------------------------------------------
+
+
+class CategoryCard(DTO):
+    """Короткая справочная карточка категории с количеством кандидатов."""
+
+    code: str
+    specialization: Literal["backend", "qa"]
+    grade: Literal["junior", "middle", "senior"]
+    active: bool
+    candidate_count: int
+
+
+class CategoryList(DTO):
+    items: list[CategoryCard]
+
+
+# --- Candidates ------------------------------------------------------------
+
+
+class SkillOnCard(DTO):
+    """Навык с баллом внутри карточки кандидата."""
+
+    id: str
+    score: float = Field(ge=0, le=100)
+
+
+class ReasonCard(DTO):
+    """Одна строка «почему подходит» в карточке кандидата."""
+
+    code: str
+    label: str | None = None
+    skill_id: str | None = None
+    score: float | None = Field(default=None, ge=0, le=100)
+    date: str | None = None
+
+
+class CandidateCard(DTO):
+    """Публичная карточка кандидата в выдаче работодателю.
+
+    Контакты и приватные поля НЕ входят — они доступны только после
+    принятия приглашения (эндпоинт модуля D).
+    """
+
+    candidate_id: UUID
+    display_name: str
+    specialization: Literal["backend", "qa"]
+    verified_grade: Literal["junior", "middle", "senior"]
+    category_code: str
+    experience_years: int
+    work_format: str
+    declared_stack: list[str]
+    score: float = Field(ge=0, le=100)
+    components: dict[str, float]
+    skills: list[SkillOnCard]
+    fsp_status: Literal["not_linked", "linked_empty", "linked_with_data", "unavailable"]
+    reasons: list[ReasonCard]
+
+
+class CandidateList(DTO):
+    """Отсортированный список кандидатов для работодателя."""
+
+    items: list[CandidateCard]
+    total: int
