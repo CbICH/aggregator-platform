@@ -1,0 +1,54 @@
+{
+  "version": "v1",
+  "updated_at": "2026-10-07",
+  "companies": [
+    {
+      "company_id": "40000000-0000-4000-8000-000000000001",
+      "name": "OrderFlow",
+      "industry": "fintech",
+      "activity": "Платёжные сервисы",
+      "description": "Разрабатываем платёжную инфраструктуру для российского ритейла. Миллион транзакций в день, фокус на идемпотентности и надёжности повторных запросов.",
+      "size": "100-200",
+      "city": "Москва",
+      "contact": {
+        "name": "Анна Соколова",
+        "role": "Head of HR",
+        "email": "hr@orderflow.test",
+        "phone": null
+      },
+      "owner_user_email": "hr@orderflow.test"
+    },
+    {
+      "company_id": "40000000-0000-4000-8000-000000000002",
+      "name": "ArcticQA",
+      "industry": "it-services",
+      "activity": "Независимая QA-лаборатория",
+      "description": "Проводим аудит и автоматизацию тестирования для финтех-продуктов. Специализируемся на платёжных системах и обработке денежных операций.",
+      "size": "30-50",
+      "city": "Санкт-Петербург",
+      "contact": {
+        "name": "Денис Орлов",
+        "role": "Тимлид QA",
+        "email": "jobs@arcticqa.test",
+        "phone": null
+      },
+      "owner_user_email": "jobs@arcticqa.test"
+    },
+    {
+      "company_id": "40000000-0000-4000-8000-000000000003",
+      "name": "DataPulse",
+      "industry": "analytics",
+      "activity": "Аналитика и data-платформы",
+      "description": "Делаем data-платформу для государственного сектора: регулярные отчёты, витрины данных, выгрузки по регламенту.",
+      "size": "50-100",
+      "city": "Казань",
+      "contact": {
+        "name": "Мария Волкова",
+        "role": "Руководитель найма",
+        "email": "team@datapulse.test",
+        "phone": null
+      },
+      "owner_user_email": "team@datapulse.test"
+    }
+  ]
+}

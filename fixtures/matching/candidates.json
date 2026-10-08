@@ -1,0 +1,688 @@
+{
+  "version": "v1",
+  "updated_at": "2026-10-07",
+  "notes": "Все кандидаты — вымышленные. internal_name указан для удобства команды в разработке и не выводится в публичных ответах API.",
+  "candidates": [
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000014",
+      "display_name": "Кандидат 014",
+      "internal_name": "Иван С.",
+      "email": "k014@signal.test",
+      "specialization": "backend",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "backend:middle",
+      "experience_years": 3,
+      "work_format": "remote",
+      "roles": ["backend-developer"],
+      "soft_skills": ["парное программирование", "код-ревью"],
+      "declared_stack": ["python", "postgresql", "fastapi"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000014",
+        "assessment_version": "backend-middle-v1",
+        "test_score": 86.0,
+        "assigned_at": "2026-09-15T10:00:00Z",
+        "next_change_at": "2026-12-14T10:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 91, "source": "assessment"},
+        {"id": "data.sql", "score": 84, "source": "assessment"},
+        {"id": "api.behavior", "score": 78, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-014",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-014-1",
+            "event": "Чемпионат России по спортивному программированию 2025",
+            "date": "2025-05-20",
+            "discipline": "продуктовое программирование",
+            "result": "финалист",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-10T12:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000027",
+      "display_name": "Кандидат 027",
+      "internal_name": "Мария К.",
+      "email": "k027@signal.test",
+      "specialization": "backend",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "backend:middle",
+      "experience_years": 4,
+      "work_format": "hybrid",
+      "roles": ["backend-developer", "tech-lead"],
+      "soft_skills": ["менторство", "код-ревью", "выступления"],
+      "declared_stack": ["python", "postgresql", "django"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000027",
+        "assessment_version": "backend-middle-v1",
+        "test_score": 92.0,
+        "assigned_at": "2026-09-10T09:00:00Z",
+        "next_change_at": "2026-12-09T09:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 94, "source": "assessment"},
+        {"id": "api.behavior", "score": 88, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "not_linked",
+        "external_subject": null,
+        "achievements": []
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000003",
+      "display_name": "Кандидат 003",
+      "internal_name": "Дмитрий Р.",
+      "email": "k003@signal.test",
+      "specialization": "backend",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "backend:middle",
+      "experience_years": 2,
+      "work_format": "office",
+      "roles": ["backend-developer"],
+      "soft_skills": ["быстро учится"],
+      "declared_stack": ["python", "postgresql", "redis"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000003",
+        "assessment_version": "backend-middle-v1",
+        "test_score": 78.0,
+        "assigned_at": "2026-08-20T11:00:00Z",
+        "next_change_at": "2026-11-18T11:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 76, "source": "assessment"},
+        {"id": "data.sql", "score": 88, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-003",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-003-1",
+            "event": "Кубок России ФСП 2024, финал в Санкт-Петербурге",
+            "date": "2024-05-15",
+            "discipline": "программирование алгоритмическое",
+            "result": "победитель",
+            "team": true,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-02T10:00:00Z"
+          },
+          {
+            "achievement_id": "fsp-ach-003-2",
+            "event": "Всероссийский фестиваль ФСП 2023",
+            "date": "2023-09-11",
+            "discipline": "программирование продуктовое",
+            "result": "призовое место",
+            "team": true,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-02T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000041",
+      "display_name": "Кандидат 041",
+      "internal_name": "Елена Б.",
+      "email": "k041@signal.test",
+      "specialization": "backend",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "backend:middle",
+      "experience_years": 3,
+      "work_format": "remote",
+      "roles": ["backend-developer"],
+      "soft_skills": [],
+      "declared_stack": ["python", "postgresql"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000041",
+        "assessment_version": "backend-middle-v1",
+        "test_score": 74.0,
+        "assigned_at": "2026-07-01T14:00:00Z",
+        "next_change_at": "2026-09-29T14:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 72, "source": "assessment"},
+        {"id": "data.sql", "score": 82, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-041",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-041-1",
+            "event": "Региональный этап ФСП 2024",
+            "date": "2024-03-10",
+            "discipline": "программирование алгоритмическое",
+            "result": "участник",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-05T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": false,
+        "discoverable": false,
+        "hidden_fields": [],
+        "note": "Отозвала разрешение на публикацию. Проверить, что скрыт из выдачи и снимков поиска."
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000052",
+      "display_name": "Кандидат 052",
+      "internal_name": "Алексей М.",
+      "email": "k052@signal.test",
+      "specialization": "backend",
+      "declared_grade": "junior",
+      "verified_grade": "junior",
+      "category_code": "backend:junior",
+      "experience_years": 1,
+      "work_format": "office",
+      "roles": ["backend-developer"],
+      "soft_skills": ["дисциплинирован"],
+      "declared_stack": ["python", "postgresql", "pandas"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000052",
+        "assessment_version": "backend-junior-v1",
+        "test_score": 81.0,
+        "assigned_at": "2026-09-20T10:00:00Z",
+        "next_change_at": "2026-12-19T10:00:00Z"
+      },
+      "skills": [
+        {"id": "data.sql", "score": 85, "source": "assessment"},
+        {"id": "data.boundaries", "score": 76, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "not_linked",
+        "external_subject": null,
+        "achievements": []
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000065",
+      "display_name": "Кандидат 065",
+      "internal_name": "Анастасия К.",
+      "email": "k065@signal.test",
+      "specialization": "backend",
+      "declared_grade": "junior",
+      "verified_grade": "junior",
+      "category_code": "backend:junior",
+      "experience_years": 0,
+      "work_format": "remote",
+      "roles": ["backend-developer"],
+      "soft_skills": ["выпускница, активно учится"],
+      "declared_stack": ["python", "postgresql"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000065",
+        "assessment_version": "backend-junior-v1",
+        "test_score": 76.0,
+        "assigned_at": "2026-09-25T13:00:00Z",
+        "next_change_at": "2026-12-24T13:00:00Z"
+      },
+      "skills": [
+        {"id": "data.sql", "score": 80, "source": "assessment"},
+        {"id": "data.boundaries", "score": 72, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-065",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-065-1",
+            "event": "Студенческий чемпионат ФСП 2025",
+            "date": "2025-04-05",
+            "discipline": "программирование алгоритмическое",
+            "result": "участник",
+            "team": true,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-10T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000072",
+      "display_name": "Кандидат 072",
+      "internal_name": "Пётр В.",
+      "email": "k072@signal.test",
+      "specialization": "backend",
+      "declared_grade": "junior",
+      "verified_grade": "junior",
+      "category_code": "backend:junior",
+      "experience_years": 1,
+      "work_format": "remote",
+      "roles": ["backend-developer"],
+      "soft_skills": [],
+      "declared_stack": ["python"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000072",
+        "assessment_version": "backend-junior-v1",
+        "test_score": 71.0,
+        "assigned_at": "2026-10-01T12:00:00Z",
+        "next_change_at": "2026-12-30T12:00:00Z"
+      },
+      "skills": [
+        {"id": "data.sql", "score": 70, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "not_linked",
+        "external_subject": null,
+        "achievements": []
+      },
+      "visibility": {
+        "email_verified": false,
+        "publication_consent": true,
+        "discoverable": false,
+        "hidden_fields": [],
+        "note": "Email не подтверждён. Проверить, что НЕ попадает в выдачу работодателю."
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000088",
+      "display_name": "Кандидат 088",
+      "internal_name": "Ольга Р.",
+      "email": "k088@signal.test",
+      "specialization": "backend",
+      "declared_grade": "senior",
+      "verified_grade": "senior",
+      "category_code": "backend:senior",
+      "experience_years": 7,
+      "work_format": "hybrid",
+      "roles": ["backend-developer", "architect"],
+      "soft_skills": ["менторство", "проектирование", "лидерство"],
+      "declared_stack": ["python", "postgresql", "kafka", "redis"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000088",
+        "assessment_version": "backend-senior-v1",
+        "test_score": 89.0,
+        "assigned_at": "2026-09-01T09:00:00Z",
+        "next_change_at": "2026-11-30T09:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 90, "source": "assessment"},
+        {"id": "api.behavior", "score": 92, "source": "assessment"},
+        {"id": "data.sql", "score": 86, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-088",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-088-1",
+            "event": "Кубок России ФСП 2024",
+            "date": "2024-05-15",
+            "discipline": "программирование продуктовое",
+            "result": "призовое место",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-01T12:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000094",
+      "display_name": "Кандидат 094",
+      "internal_name": "Сергей А.",
+      "email": "k094@signal.test",
+      "specialization": "backend",
+      "declared_grade": "senior",
+      "verified_grade": "senior",
+      "category_code": "backend:senior",
+      "experience_years": 8,
+      "work_format": "remote",
+      "roles": ["backend-developer"],
+      "soft_skills": ["методичный", "аналитик"],
+      "declared_stack": ["python", "postgresql", "elasticsearch"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000094",
+        "assessment_version": "backend-senior-v1",
+        "test_score": 87.0,
+        "assigned_at": "2026-09-05T14:00:00Z",
+        "next_change_at": "2026-12-04T14:00:00Z"
+      },
+      "skills": [
+        {"id": "api.idempotency", "score": 85, "source": "assessment"},
+        {"id": "data.sql", "score": 91, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "not_linked",
+        "external_subject": null,
+        "achievements": []
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000102",
+      "display_name": "Кандидат 102",
+      "internal_name": "Татьяна Л.",
+      "email": "k102@signal.test",
+      "specialization": "qa",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "qa:middle",
+      "experience_years": 3,
+      "work_format": "hybrid",
+      "roles": ["qa-engineer", "automation"],
+      "soft_skills": ["коммуникация с разработкой", "работа с требованиями"],
+      "declared_stack": ["python", "pytest", "postman", "jmeter"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000102",
+        "assessment_version": "qa-middle-v1",
+        "test_score": 84.0,
+        "assigned_at": "2026-09-18T10:00:00Z",
+        "next_change_at": "2026-12-17T10:00:00Z"
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 86, "source": "assessment"},
+        {"id": "qa.defect_analysis", "score": 82, "source": "assessment"},
+        {"id": "qa.risk_priority", "score": 80, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-102",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-102-1",
+            "event": "Чемпионат ФСП 2025, направление «обеспечение качества»",
+            "date": "2025-05-20",
+            "discipline": "обеспечение качества ПО",
+            "result": "финалист",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-12T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000109",
+      "display_name": "Кандидат 109",
+      "internal_name": "Юлия Н.",
+      "email": "k109@signal.test",
+      "specialization": "qa",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "qa:middle",
+      "experience_years": 4,
+      "work_format": "office",
+      "roles": ["qa-engineer"],
+      "soft_skills": ["педантичность"],
+      "declared_stack": ["python", "pytest", "selenium"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000109",
+        "assessment_version": "qa-middle-v1",
+        "test_score": 79.0,
+        "assigned_at": "2026-09-08T11:00:00Z",
+        "next_change_at": "2026-12-07T11:00:00Z"
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 81, "source": "assessment"},
+        {"id": "qa.defect_analysis", "score": 78, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "unavailable",
+        "external_subject": null,
+        "achievements": [],
+        "note": "Адаптер ФСП временно недоступен. Проверить, что это отображается как особое состояние, не как «нет истории»."
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000115",
+      "display_name": "Кандидат 115",
+      "internal_name": "Максим К.",
+      "email": "k115@signal.test",
+      "specialization": "qa",
+      "declared_grade": "middle",
+      "verified_grade": "middle",
+      "category_code": "qa:middle",
+      "experience_years": 3,
+      "work_format": "remote",
+      "roles": ["qa-engineer", "lead"],
+      "soft_skills": ["планирование релизов"],
+      "declared_stack": ["python", "pytest", "jmeter", "sql"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000115",
+        "assessment_version": "qa-middle-v1",
+        "test_score": 82.0,
+        "assigned_at": "2026-09-22T09:00:00Z",
+        "next_change_at": "2026-12-21T09:00:00Z"
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 88, "source": "assessment"},
+        {"id": "qa.risk_priority", "score": 78, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-115",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-115-1",
+            "event": "Региональный этап ФСП 2025",
+            "date": "2025-03-18",
+            "discipline": "обеспечение качества ПО",
+            "result": "участник",
+            "team": true,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-14T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000123",
+      "display_name": "Кандидат 123",
+      "internal_name": "Виктория Д.",
+      "email": "k123@signal.test",
+      "specialization": "qa",
+      "declared_grade": "middle",
+      "verified_grade": "junior",
+      "category_code": "qa:junior",
+      "experience_years": 2,
+      "work_format": "remote",
+      "roles": ["qa-engineer"],
+      "soft_skills": ["быстро учится"],
+      "declared_stack": ["python", "postman"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000123",
+        "assessment_version": "qa-junior-v1",
+        "test_score": 73.0,
+        "assigned_at": "2026-09-26T15:00:00Z",
+        "next_change_at": "2026-12-25T15:00:00Z",
+        "note": "Пробовала Middle, не прошла. Добровольно подтвердилась на Junior."
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 76, "source": "assessment"},
+        {"id": "qa.defect_analysis", "score": 72, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "not_linked",
+        "external_subject": null,
+        "achievements": []
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000129",
+      "display_name": "Кандидат 129",
+      "internal_name": "Артём Г.",
+      "email": "k129@signal.test",
+      "specialization": "qa",
+      "declared_grade": "junior",
+      "verified_grade": "junior",
+      "category_code": "qa:junior",
+      "experience_years": 1,
+      "work_format": "office",
+      "roles": ["qa-engineer"],
+      "soft_skills": ["дисциплинирован"],
+      "declared_stack": ["python", "postman"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000129",
+        "assessment_version": "qa-junior-v1",
+        "test_score": 78.0,
+        "assigned_at": "2026-09-28T10:00:00Z",
+        "next_change_at": "2026-12-27T10:00:00Z"
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 80, "source": "assessment"},
+        {"id": "qa.defect_analysis", "score": 75, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-129",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-129-1",
+            "event": "Студенческий чемпионат ФСП 2025",
+            "date": "2025-04-05",
+            "discipline": "обеспечение качества ПО",
+            "result": "участник",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-16T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    },
+    {
+      "candidate_id": "10000000-0000-4000-8000-000000000137",
+      "display_name": "Кандидат 137",
+      "internal_name": "Наталья П.",
+      "email": "k137@signal.test",
+      "specialization": "qa",
+      "declared_grade": "senior",
+      "verified_grade": "senior",
+      "category_code": "qa:senior",
+      "experience_years": 9,
+      "work_format": "hybrid",
+      "roles": ["qa-engineer", "qa-lead", "automation-architect"],
+      "soft_skills": ["стратегия тестирования", "наставничество", "выступления"],
+      "declared_stack": ["python", "pytest", "jmeter", "k6", "sql", "ci/cd"],
+      "assessment": {
+        "assessment_id": "20000000-0000-4000-8000-000000000137",
+        "assessment_version": "qa-senior-v1",
+        "test_score": 91.0,
+        "assigned_at": "2026-09-03T09:00:00Z",
+        "next_change_at": "2026-12-02T09:00:00Z"
+      },
+      "skills": [
+        {"id": "qa.test_design", "score": 93, "source": "assessment"},
+        {"id": "qa.defect_analysis", "score": 90, "source": "assessment"},
+        {"id": "qa.risk_priority", "score": 92, "source": "assessment"}
+      ],
+      "fsp": {
+        "status": "linked_with_data",
+        "external_subject": "fsp-sub-137",
+        "achievements": [
+          {
+            "achievement_id": "fsp-ach-137-1",
+            "event": "Чемпионат России ФСП 2023, финал в Москве",
+            "date": "2023-05-10",
+            "discipline": "обеспечение качества ПО",
+            "result": "победитель",
+            "team": false,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-04T10:00:00Z"
+          },
+          {
+            "achievement_id": "fsp-ach-137-2",
+            "event": "Всероссийский фестиваль ФСП 2024",
+            "date": "2024-09-11",
+            "discipline": "обеспечение качества ПО",
+            "result": "призовое место",
+            "team": true,
+            "source": "ФСП, реестр соревнований",
+            "verified_at": "2026-09-04T10:00:00Z"
+          }
+        ]
+      },
+      "visibility": {
+        "email_verified": true,
+        "publication_consent": true,
+        "discoverable": true,
+        "hidden_fields": []
+      }
+    }
+  ]
+}

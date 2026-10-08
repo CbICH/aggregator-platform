@@ -1,0 +1,48 @@
+{
+  "version": "v1",
+  "updated_at": "2026-10-07",
+  "skills": [
+    {
+      "id": "api.behavior",
+      "label": "Поведение HTTP API",
+      "specialization": "backend",
+      "description": "Коды ответов, идемпотентность методов, таймауты, базовые заголовки."
+    },
+    {
+      "id": "api.idempotency",
+      "label": "Идемпотентность и повторные запросы",
+      "specialization": "backend",
+      "description": "Ключи идемпотентности, обработка дубликатов, корректная работа при сбоях сети."
+    },
+    {
+      "id": "data.sql",
+      "label": "SQL и работа с реляционной базой",
+      "specialization": "backend",
+      "description": "Выборки, JOIN'ы, индексы, транзакции, оптимизация запросов."
+    },
+    {
+      "id": "data.boundaries",
+      "label": "Границы и ошибки данных",
+      "specialization": "backend",
+      "description": "Пустые множества, null, граничные значения, конкурентный доступ."
+    },
+    {
+      "id": "qa.test_design",
+      "label": "Проектирование тестов",
+      "specialization": "qa",
+      "description": "Классы эквивалентности, граничные значения, таблицы решений, покрытие сценариев."
+    },
+    {
+      "id": "qa.defect_analysis",
+      "label": "Поиск и анализ дефектов",
+      "specialization": "qa",
+      "description": "Выявление ошибок по требованиям и наблюдениям, минимизация, воспроизведение."
+    },
+    {
+      "id": "qa.risk_priority",
+      "label": "Приоритизация рисков",
+      "specialization": "qa",
+      "description": "Оценка критичности дефектов, выбор что проверять в первую очередь."
+    }
+  ]
+}

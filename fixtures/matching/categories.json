@@ -1,0 +1,21 @@
+{
+  "version": "v1",
+  "updated_at": "2026-10-07",
+  "specializations": [
+    {"id": "backend", "label": "Backend-разработка"},
+    {"id": "qa", "label": "Тестирование (QA)"}
+  ],
+  "grades": [
+    {"id": "junior", "label": "Junior", "order": 1},
+    {"id": "middle", "label": "Middle", "order": 2},
+    {"id": "senior", "label": "Senior", "order": 3}
+  ],
+  "categories": [
+    {"code": "backend:junior", "specialization": "backend", "grade": "junior", "active": true},
+    {"code": "backend:middle", "specialization": "backend", "grade": "middle", "active": true},
+    {"code": "backend:senior", "specialization": "backend", "grade": "senior", "active": true},
+    {"code": "qa:junior", "specialization": "qa", "grade": "junior", "active": true},
+    {"code": "qa:middle", "specialization": "qa", "grade": "middle", "active": true},
+    {"code": "qa:senior", "specialization": "qa", "grade": "senior", "active": true}
+  ]
+}
