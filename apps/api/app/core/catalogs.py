@@ -43,9 +43,9 @@ def catalogs():
             }.items()
         ],
         stack=[CatalogItem(id=s, label=s) for s in ("python", "postgresql", "javascript")],
-        # B enables only categories with implemented and validated assessments.
+        # B enables only categories backed by a server-scored assessment template.
         categories=[
-            CatalogItem(id=f"{s}:{g}", label=f"{s.title()} · {g.title()}", active=False)
+            CatalogItem(id=f"{s}:{g}", label=f"{s.title()} · {g.title()}", active=True)
             for s in ("backend", "qa")
             for g in ("junior", "middle", "senior")
         ],
