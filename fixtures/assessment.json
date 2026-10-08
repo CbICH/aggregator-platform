@@ -1,0 +1,42 @@
+{
+  "catalog_version": "assessment-v1",
+  "categories": [
+    "backend:junior", "backend:middle", "backend:senior",
+    "qa:junior", "qa:middle", "qa:senior"
+  ],
+  "families": {
+    "backend": ["api", "data", "decision"],
+    "qa": ["defects", "test_design", "risk"]
+  },
+  "weights": {"first": 40, "second": 35, "third": 25},
+  "pass_rule": {"total_min": 70, "critical_family_min_fraction": 0.5},
+  "fixture_note": "Synthetic integration fixture only; it is not a pilot measurement.",
+  "assessment_result_example": {
+    "id": "10000000-0000-4000-8000-000000000001",
+    "specialization": "backend",
+    "target_grade": "middle",
+    "status": "passed",
+    "started_at": "2026-10-08T10:00:00Z",
+    "deadline_at": "2026-10-08T10:25:00Z",
+    "submitted_at": "2026-10-08T10:14:00Z",
+    "score": 85,
+    "family_scores": {"api": 35, "data": 25, "decision": 25},
+    "passed": true,
+    "next_grade_recommended": true
+  },
+  "verified_category_example": {
+    "candidate_id": "20000000-0000-4000-8000-000000000001",
+    "category_code": "backend:middle",
+    "specialization": "backend",
+    "verified_grade": "middle",
+    "test_score": 85,
+    "assessment_id": "10000000-0000-4000-8000-000000000001",
+    "assessment_version": "backend-middle-v1",
+    "assigned_at": "2026-10-08T10:14:00Z",
+    "next_change_at": "2027-01-06T10:14:00Z",
+    "skills": [
+      {"id": "api.idempotency", "score": 87.5, "source": "assessment"},
+      {"id": "data.sql", "score": 71.4, "source": "assessment"}
+    ]
+  }
+}

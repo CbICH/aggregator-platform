@@ -5,11 +5,12 @@ import { AuthPage, CheckEmail, VerifyEmail } from './AuthPages';
 import { Notice } from '../shared/ui';
 import type { Role } from '../shared/api';
 import { assessment } from '../features/assessment';
+import { pilot } from '../features/pilot';
 import { matching } from '../features/matching';
 import { profile } from '../features/profile';
 import { invitations } from '../features/invitations';
 
-const features = [assessment, matching, profile, invitations];
+const features = [assessment, pilot, matching, profile, invitations];
 
 function Guard({ children, roles }: { children: ReactNode; roles?: Role[] }) {
   const auth = useAuth();
@@ -38,13 +39,13 @@ function Workspace() {
     {!user?.email_verified ? <Notice>Подтвердите email, чтобы продолжить. <Link to="/check-email">Отправить письмо</Link> · <button className="inline-button" onClick={() => void refresh()}>Я подтвердил адрес</button></Notice> : <Notice>Email подтверждён. Ваш аккаунт готов к работе.</Notice>}
     <div className="module-grid">{(user?.role === 'candidate' ? [
       ['01', 'Профиль', 'Расскажите об опыте и выберите, что увидит работодатель.'],
-      ['02', 'Подтверждение навыков', 'Пройдите тест и получите подтверждённую категорию.'],
+      ['02', 'Подтверждение навыков', 'Пройдите тест и получите подтверждённую категорию.', '/candidate/assessment'],
       ['03', 'Предложения', 'Сравните задачи и зарплату, затем выберите подходящую команду.'],
     ] : [
       ['01', 'Потребность команды', 'Опишите задачи будущего сотрудника и нужные навыки.'],
       ['02', 'Подбор специалистов', 'Оцените подтверждённые навыки и основания рекомендации.'],
       ['03', 'Приглашения', 'Предложите кандидату конкретную работу и зарплату.'],
-    ]).map(([number, title, text]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p><span className="coming-soon">Скоро будет доступно</span></section>)}</div>
+    ]).map(([number, title, text, path]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p>{path ? <Link className="button primary" to={path}>Пройти тест</Link> : <span className="coming-soon">Скоро будет доступно</span>}</section>)}</div>
   </main>;
 }
 

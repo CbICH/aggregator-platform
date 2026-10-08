@@ -1,0 +1,262 @@
+{
+  "status": "passed",
+  "templates_checked": 18,
+  "variants_per_template": 100,
+  "total_variants_checked": 1800,
+  "checks": [
+    {
+      "template_id": "backend-junior-api-v1",
+      "specialization": "backend",
+      "grade": "junior",
+      "family": "api",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-junior-data-v1",
+      "specialization": "backend",
+      "grade": "junior",
+      "family": "data",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-junior-decision-v1",
+      "specialization": "backend",
+      "grade": "junior",
+      "family": "decision",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-middle-api-v1",
+      "specialization": "backend",
+      "grade": "middle",
+      "family": "api",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-middle-data-v1",
+      "specialization": "backend",
+      "grade": "middle",
+      "family": "data",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-middle-decision-v1",
+      "specialization": "backend",
+      "grade": "middle",
+      "family": "decision",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-senior-api-v1",
+      "specialization": "backend",
+      "grade": "senior",
+      "family": "api",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-senior-data-v1",
+      "specialization": "backend",
+      "grade": "senior",
+      "family": "data",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "backend-senior-decision-v1",
+      "specialization": "backend",
+      "grade": "senior",
+      "family": "decision",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-junior-defects-v1",
+      "specialization": "qa",
+      "grade": "junior",
+      "family": "defects",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-junior-test_design-v1",
+      "specialization": "qa",
+      "grade": "junior",
+      "family": "test_design",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-junior-risk-v1",
+      "specialization": "qa",
+      "grade": "junior",
+      "family": "risk",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-middle-defects-v1",
+      "specialization": "qa",
+      "grade": "middle",
+      "family": "defects",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-middle-test_design-v1",
+      "specialization": "qa",
+      "grade": "middle",
+      "family": "test_design",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-middle-risk-v1",
+      "specialization": "qa",
+      "grade": "middle",
+      "family": "risk",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-senior-defects-v1",
+      "specialization": "qa",
+      "grade": "senior",
+      "family": "defects",
+      "variants_checked": 100,
+      "expected_weight": 40,
+      "min_score": 40.0,
+      "max_score": 40.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-senior-test_design-v1",
+      "specialization": "qa",
+      "grade": "senior",
+      "family": "test_design",
+      "variants_checked": 100,
+      "expected_weight": 35,
+      "min_score": 35.0,
+      "max_score": 35.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    },
+    {
+      "template_id": "qa-senior-risk-v1",
+      "specialization": "qa",
+      "grade": "senior",
+      "family": "risk",
+      "variants_checked": 100,
+      "expected_weight": 25,
+      "min_score": 25.0,
+      "max_score": 25.0,
+      "distinct_public_prompts": 100,
+      "public_prompt_leak": false
+    }
+  ],
+  "copy_transfer_checks": [
+    {
+      "category": "backend:junior",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    },
+    {
+      "category": "backend:middle",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    },
+    {
+      "category": "backend:senior",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    },
+    {
+      "category": "qa:junior",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    },
+    {
+      "category": "qa:middle",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    },
+    {
+      "category": "qa:senior",
+      "pairs_checked": 20,
+      "copied_answer_passes": 0,
+      "copied_answer_pass_rate": 0.0
+    }
+  ]
+}
