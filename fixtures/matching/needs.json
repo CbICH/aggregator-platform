@@ -1,0 +1,85 @@
+{
+  "version": "v1",
+  "updated_at": "2026-10-07",
+  "needs": [
+    {
+      "need_id": "30000000-0000-4000-8000-000000000001",
+      "company_id": "40000000-0000-4000-8000-000000000001",
+      "title": "Развитие API сервиса заказов",
+      "description": "В сервисе заказов нужна обработка повторных запросов и работа с данными. Ожидаем диагностировать существующие баги в идемпотентности, подготовить миграции и оптимизировать несколько медленных SELECT'ов в отчётах.",
+      "raw_tasks": [
+        "Разбирать баги в обработке повторных POST-запросов (ключи идемпотентности)",
+        "Проектировать схему и миграции для новой витрины заказов",
+        "Оптимизировать выборки с JOIN'ами на 3-4 таблицы"
+      ],
+      "specialization": "backend",
+      "grades": ["middle"],
+      "declared_stack": ["python", "postgresql", "fastapi"],
+      "required_skills": [
+        {"id": "api.idempotency", "weight": 2},
+        {"id": "data.sql", "weight": 1}
+      ],
+      "work_format": "remote",
+      "salary": {
+        "min": 180000,
+        "max": 230000,
+        "currency": "RUB",
+        "period": "month",
+        "tax_basis": "gross"
+      }
+    },
+    {
+      "need_id": "30000000-0000-4000-8000-000000000002",
+      "company_id": "40000000-0000-4000-8000-000000000002",
+      "title": "Автоматизация тестирования API платежей",
+      "description": "Нужно развивать набор проверок для платёжного API: правила скидок, обработка повторов, границы сумм. Приоритизируем по рискам, писать на Pytest.",
+      "raw_tasks": [
+        "Проектировать наборы проверок для правил скидок и границ сумм",
+        "Поддерживать репортинг покрытия по требованиям",
+        "Приоритизировать дефекты по рискам для продакшена"
+      ],
+      "specialization": "qa",
+      "grades": ["middle"],
+      "declared_stack": ["python", "pytest", "postman"],
+      "required_skills": [
+        {"id": "qa.test_design", "weight": 2},
+        {"id": "qa.defect_analysis", "weight": 1},
+        {"id": "qa.risk_priority", "weight": 1}
+      ],
+      "work_format": "hybrid",
+      "salary": {
+        "min": 150000,
+        "max": 200000,
+        "currency": "RUB",
+        "period": "month",
+        "tax_basis": "gross"
+      }
+    },
+    {
+      "need_id": "30000000-0000-4000-8000-000000000003",
+      "company_id": "40000000-0000-4000-8000-000000000003",
+      "title": "Обработка данных отчётности",
+      "description": "Делать регулярные выгрузки для регулятора. Писать SQL для подготовки витрин, следить за крайними случаями (пустые периоды, перекосы, дубликаты).",
+      "raw_tasks": [
+        "Писать SQL-отчёты для регулятора по регламенту",
+        "Проверять данные на граничные случаи и дубликаты",
+        "Поддерживать существующие ETL-процессы на Python"
+      ],
+      "specialization": "backend",
+      "grades": ["junior"],
+      "declared_stack": ["python", "postgresql", "pandas"],
+      "required_skills": [
+        {"id": "data.sql", "weight": 2},
+        {"id": "data.boundaries", "weight": 1}
+      ],
+      "work_format": "office",
+      "salary": {
+        "min": 90000,
+        "max": 130000,
+        "currency": "RUB",
+        "period": "month",
+        "tax_basis": "gross"
+      }
+    }
+  ]
+}

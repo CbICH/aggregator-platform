@@ -69,11 +69,11 @@ PDF создаётся ReportLab с включёнными Noto Sans (SIL OFL 1.
 
 ## Транзакции и интеграция
 
-Миграции `0002_d_profiles` и `0003_d_snapshots` следуют за `0001_core`. К компаниям/потребностям/вакансиям нет FK до появления таблиц C. При интеграции C должен добавить согласованные FK/миграции, а не менять UUID mapping.
+Миграции `0002_d_profiles` и `0003_d_snapshots` следуют за `0001_core`. История D объединена с B/C (`0009_matching_companies`) ревизией `0010_merge_bcd`; общий head — `0011_assessment_survey_index`. Применённые ревизии не переписываются. Таблица компаний C уже существует; FK D к компании/потребности/вакансии пока не добавлены, ownership проверяется портами. Потребности и вакансии C ещё не реализованы.
 
 Сервисы выполняют flush; роутер владеет commit/rollback. Профиль используется как общий write-lock при privacy, отправке и решении; затем выполняется атомарный UPDATE приглашения. Это работает на PostgreSQL и SQLite без предположения о SQLite FOR UPDATE. Запись финала, события, согласия и grant атомарна. Audit хранит действие, UUID и request ID без резюме, email или телефона.
 
-Composition root `configure_d(app)` предоставляет реальные `profile_read_factory(db)` и `contact_access_factory(db)` для C/A. A/B/C устанавливают request-scoped фабрики:
+Composition root `configure_d(app)` предоставляет реальные `profile_read_factory(db)` и `contact_access_factory(db)` для C/A. `create_app()` также устанавливает `assessment_read_factory=SqlAlchemyAssessmentRead` и `company_read_factory=SqlAlchemyCompanyRead`. Фабрики получают Session текущего запроса:
 
 ```python
 app.state.assessment_read_factory = lambda db: RealAssessmentRead(db)
@@ -83,10 +83,10 @@ app.state.fsp_read_factory = lambda db: RealFspRead(db)
 
 B реализует `get_verified(candidate_id)` и возвращает категорию именно этого кандидата. C реализует `get_summary(company_id)`, `owns_need(company_id, need_id)`; `owns_vacancy` предусмотрен портом для P1. D `ProfileRead` имеет `get_public`, `is_discoverable`, `list_public(actor, after, limit)`; C фильтрует только разрешённые публичные значения и повторно проверяет профиль перед показом snapshot. D `ContactAccess.get` возвращает DTO или None; внешний endpoint дополнительно проверяет роль, email и компанию.
 
-Без B категория null и профиль не доступен поиску. Без компании actor получает `COMPANY_REQUIRED`; без реализации C — 503. Production не включает fake ports. Фикстуры и `tests/e2e_app.py` существуют только для контролируемой проверки D.
+До подтверждения категории B профиль недоступен работодателю. Без компании actor получает `COMPANY_REQUIRED`; после создания компании C отправка работает. `owns_need` пока всегда False, поскольку потребности C ещё отсутствуют. Production не включает fake ports. Фикстуры и `tests/e2e_app.py` существуют только для контролируемой проверки D.
 
 ФСП UI использует API C: `GET /candidate/fsp` → `FspEvidence`; `POST /candidate/fsp-link` с `{"fsp_id":"..."}` и `DELETE /candidate/fsp-link`. C должен подтвердить владение; ввод ID в D не назначает достижение. Доступны четыре состояния: not_linked, linked_empty, linked_with_data, unavailable. Если C отсутствует, UI показывает недоступность и основной путь остаётся доступен. DTO связи нужно синхронно подтвердить с C перед подключением.
 
 ## Проверки
 
-См. [status-D.md](status-D.md), [матрицу требований](requirements-D.md) и [сценарий демонстрации/передачи](handoff-D.md). API: права, валидация, скрытие, согласия, snapshot, idempotency, гонки, grants, PDF. Отдельный `npm run test:e2e:d` проверяет два кабинета на реальном A/D с тестовыми портами B/C и отдельной БД; это не доказательство готовности настоящего B/C или общего MVP.
+См. [status-D.md](status-D.md), [матрицу требований](requirements-D.md) и [сценарий демонстрации/передачи](handoff-D.md). API: права, валидация, скрытие, согласия, snapshot, idempotency, гонки, grants, PDF. `tests/bcd-integration.spec.ts` проверяет реальный тест B, компанию C и приглашения/контакты D. Отдельный `npm run test:e2e:d` использует порты B/C и отдельную БД для подробных негативных сценариев D. Полный подбор C и ФСП этими тестами не подтверждаются.

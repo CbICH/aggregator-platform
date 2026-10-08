@@ -27,7 +27,7 @@ def my_feature(
 
 Добавляйте `response_model`; сырые ORM-объекты не должны случайно сериализовать приватные поля. Для публичной карточки используйте `CandidatePublic`, для контактов — отдельный защищённый DTO. Схемы с `extra=forbid` отклоняют неизвестные поля. `Salary` запрещает дробные/отрицательные рубли, иную валюту и перевёрнутый диапазон.
 
-Модели наследуются от `app.core.db.Base`. Перед генерацией миграции зарегистрируйте импорт моделей в `migrations/env.py`; единую последовательность ревизий согласуйте с A. Текущая цепочка — `0001_core → 0002_d_profiles → 0003_d_snapshots`. Проверяйте миграцию на пустой тестовой базе и отсутствие расхождений через `alembic check`.
+Модели наследуются от `app.core.db.Base`; импорты A/B/C/D зарегистрированы в `migrations/env.py`. Истории D (`0003_d_snapshots`) и B/C (`0009_matching_companies`) соединены через `0010_merge_bcd`; единый head — `0011_assessment_survey_index`. Не переписывайте уже применённые ревизии. Проверяйте upgrade из обеих историй и пустой базы, затем `alembic check`. Подробности: [integration-bcd.md](integration-bcd.md).
 
 ## Frontend
 
@@ -75,7 +75,7 @@ CI проверяет, что экспорт не меняет закоммич�
 
 ## Готовые порты D
 
-`create_app()` подключает `app.state.profile_read_factory(db)` и `app.state.contact_access_factory(db)`. Это реальные D-сервисы с той же Session запроса. A устанавливает фабрики B/C: `assessment_read_factory`, `company_read_factory`, `fsp_read_factory`; они принимают Session и не выполняют промежуточный commit. Без B кандидат недоступен поиску; без C приглашения не имитируются.
+`create_app()` подключает реальные фабрики D `profile_read_factory(db)`/`contact_access_factory(db)`, B `assessment_read_factory(db)` и C `company_read_factory(db)` с Session запроса. `fsp_read_factory` ещё не реализована C. Read-порты не выполняют промежуточный commit. До категории B кандидат недоступен работодателю; до компании C отправка приглашения закрыта.
 
 `CandidatePublic.roles`, `declared_stack`, `experience_months` теперь nullable: `null` означает скрыто, `hidden_fields` перечисляет скрытые поля. Нельзя считать скрытый стаж нулевым или фильтровать по приватному значению. `verified_category` содержит текущую категорию B; ФИО, резюме и контактов в DTO нет. Публичный стек содержит только распознанные технологии. C перечитывает профиль D перед показом сохранённой подборки.
 

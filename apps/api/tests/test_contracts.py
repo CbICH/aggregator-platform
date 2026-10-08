@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.contracts.schemas import CandidatePublic, Salary, VerifiedCategory
+from app.contracts.schemas import AssessmentResult, CandidatePublic, Salary, VerifiedCategory
 from app.core.config import Settings
 from app.main import create_app
 
@@ -44,12 +44,24 @@ def test_contract_fixtures():
         CandidatePublic.model_validate(row)
 
 
+def test_assessment_fixture_is_a_public_contract_example():
+    root = Path(__file__).resolve().parents[3]
+    fixture = json.loads((root / "fixtures/assessment.json").read_text())
+    result = AssessmentResult.model_validate(fixture["assessment_result_example"])
+    category = VerifiedCategory.model_validate(fixture["verified_category_example"])
+    assert result.status == "passed"
+    assert category.category_code == "backend:middle"
+
+
 def test_openapi_and_catalog_state(client):
     schema = client.get("/api/openapi.json").json()
     assert "/api/v1/auth/register" in schema["paths"]
     assert schema["paths"]["/api/v1/me"]["get"]["security"]
     assert schema["paths"]["/api/v1/auth/login"]["post"]["responses"]["429"]
-    assert all(not item["active"] for item in client.get("/api/v1/catalogs").json()["categories"])
+    categories = client.get("/api/v1/catalogs").json()["categories"]
+    assert len(categories) == 6
+    assert all(item["active"] for item in categories)
+    assert "/api/v1/assessments" in schema["paths"]
 
 
 def test_health_readiness_and_request_id(client):
