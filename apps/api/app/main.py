@@ -17,6 +17,7 @@ from app.core.mail import Mailer, SmtpMailer
 from app.core.models import User
 from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
+from app.modules.fsp.provider import DemoFspProvider
 
 
 class Health(DTO):
@@ -47,6 +48,8 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.state.session_factory = make_session_factory(engine)
     # B exposes only the read-only contract to modules C/D; neither gets its write models.
     app.state.assessment_read = SqlAlchemyAssessmentRead(app.state.session_factory)
+    # C's FSP port — DemoFspProvider читает фикстуры; в проде подменяется на HttpFspProvider.
+    app.state.fsp_provider = DemoFspProvider()
     app.state.mailer = mailer or SmtpMailer(cfg)
     install_errors(app)
 

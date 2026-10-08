@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,7 @@ from app.core.db import get_db, utcnow
 from app.core.errors import ERROR_RESPONSES, AppError
 from app.core.models import User
 from app.core.security import require_role
+from app.modules.fsp.provider import DemoFspProvider, FspProvider
 from app.modules.matching import service
 from app.modules.matching.models import Company, EmployerNeed
 from app.modules.matching.schemas import (
@@ -34,6 +35,19 @@ router = APIRouter(tags=["Matching"], responses=ERROR_RESPONSES)
 
 EmployerActor = Annotated[ActorContext, Depends(require_role(Role.EMPLOYER))]
 DbSession = Annotated[Session, Depends(get_db)]
+
+
+def _fsp_provider(request: Request) -> FspProvider:
+    """Берёт провайдер ФСП из app.state (регистрируется в create_app),
+    иначе — локальный DemoFspProvider как фолбэк для тестов.
+    """
+    provider = getattr(request.app.state, "fsp_provider", None)
+    if provider is None:
+        provider = DemoFspProvider()
+    return provider
+
+
+FspPort = Annotated[FspProvider, Depends(_fsp_provider)]
 
 
 # --- Company ---------------------------------------------------------------
@@ -179,6 +193,7 @@ def list_categories(_: EmployerActor) -> CategoryList:
 def list_candidates(
     actor: EmployerActor,
     db: DbSession,
+    fsp: FspPort,
     specialization: Annotated[Literal["backend", "qa"] | None, Query()] = None,
     grade: Annotated[Literal["junior", "middle", "senior"] | None, Query()] = None,
     with_fsp_only: Annotated[bool, Query()] = False,
@@ -207,6 +222,7 @@ def list_candidates(
         grade=grade,
         with_fsp_only=with_fsp_only,
         need=need_payload,
+        fsp_provider=fsp,
     )
 
     cards: list[CandidateCard] = []
@@ -225,7 +241,7 @@ def list_candidates(
                 score=item.score,
                 components=item.components,
                 skills=[SkillOnCard(id=s["id"], score=s["score"]) for s in c.get("skills", [])],
-                fsp_status=c.get("fsp", {}).get("status", "not_linked"),
+                fsp_status=item.fsp_signal.status,
                 reasons=[ReasonCard(**r) for r in item.reasons],
             )
         )
