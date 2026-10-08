@@ -1,14 +1,4 @@
-"""Эндпоинты модуля matching: профиль компании работодателя и подборка.
-
-Company:
-  POST  /api/v1/company              — создать компанию (одна на одного работодателя).
-  GET   /api/v1/company              — получить свою компанию.
-  PATCH /api/v1/company              — изменить поля своей компании.
-
-Catalog + поиск:
-  GET   /api/v1/employer/categories  — активные категории с количеством кандидатов.
-  GET   /api/v1/employer/candidates  — список кандидатов с объяснимым score.
-"""
+"""Эндпоинты модуля matching: профиль компании, потребности, подборка кандидатов."""
 
 from typing import Annotated, Literal
 from uuid import UUID
@@ -23,7 +13,7 @@ from app.core.errors import ERROR_RESPONSES, AppError
 from app.core.models import User
 from app.core.security import require_role
 from app.modules.matching import service
-from app.modules.matching.models import Company
+from app.modules.matching.models import Company, EmployerNeed
 from app.modules.matching.schemas import (
     CandidateCard,
     CandidateList,
@@ -32,7 +22,11 @@ from app.modules.matching.schemas import (
     CompanyCreate,
     CompanyResponse,
     CompanyUpdate,
+    NeedCreate,
+    NeedList,
+    NeedResponse,
     ReasonCard,
+    RequiredSkill,
     SkillOnCard,
 )
 
@@ -46,24 +40,10 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 
 @router.post("/company", response_model=CompanyResponse, status_code=201)
-def create_company(
-    payload: CompanyCreate,
-    actor: EmployerActor,
-    db: DbSession,
-) -> Company:
-    """Создать компанию для текущего работодателя.
-
-    Возвращает 409 COMPANY_EXISTS, если у работодателя уже есть компания.
-    """
-    existing = db.scalar(
-        select(Company).where(Company.owner_user_id == str(actor.user_id))
-    )
+def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) -> Company:
+    existing = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if existing is not None:
-        raise AppError(
-            409,
-            "COMPANY_EXISTS",
-            "У вас уже есть компания. Используйте PATCH /company для обновления.",
-        )
+        raise AppError(409, "COMPANY_EXISTS", "У вас уже есть компания. Используйте PATCH /company для обновления.")
 
     company = Company(
         owner_user_id=str(actor.user_id),
@@ -89,33 +69,17 @@ def create_company(
 
 @router.get("/company", response_model=CompanyResponse)
 def get_my_company(actor: EmployerActor, db: DbSession) -> Company:
-    """Прочитать профиль своей компании."""
-    company = db.scalar(
-        select(Company).where(Company.owner_user_id == str(actor.user_id))
-    )
+    company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
-        raise AppError(
-            404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Создайте через POST /company."
-        )
+        raise AppError(404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Создайте через POST /company.")
     return company
 
 
 @router.patch("/company", response_model=CompanyResponse)
-def update_my_company(
-    payload: CompanyUpdate,
-    actor: EmployerActor,
-    db: DbSession,
-) -> Company:
-    """Частично обновить свою компанию."""
-    company = db.scalar(
-        select(Company).where(Company.owner_user_id == str(actor.user_id))
-    )
+def update_my_company(payload: CompanyUpdate, actor: EmployerActor, db: DbSession) -> Company:
+    company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
-        raise AppError(
-            404,
-            "COMPANY_NOT_FOUND",
-            "Компания ещё не создана. Сначала выполните POST /company.",
-        )
+        raise AppError(404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Сначала выполните POST /company.")
 
     changes = payload.model_dump(exclude_unset=True)
     for key, value in changes.items():
@@ -126,52 +90,123 @@ def update_my_company(
     return company
 
 
-# --- Catalog ---------------------------------------------------------------
+# --- Helper: company id by actor -------------------------------------------
+
+
+def _require_company_id(db: Session, actor: ActorContext) -> str:
+    company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
+    if company is None:
+        raise AppError(
+            409,
+            "COMPANY_REQUIRED",
+            "Сначала заполните профиль компании (POST /company), затем создавайте потребности.",
+        )
+    return company.id
+
+
+# --- Needs -----------------------------------------------------------------
+
+
+def _need_to_response(need: EmployerNeed) -> NeedResponse:
+    return NeedResponse(
+        id=UUID(need.id),
+        company_id=UUID(need.company_id),
+        title=need.title,
+        description=need.description,
+        specialization=need.specialization,
+        grades=need.grades,
+        declared_stack=need.declared_stack,
+        required_skills=[RequiredSkill(**rs) for rs in need.required_skills],
+        work_format=need.work_format,
+        salary_min=need.salary_min,
+        salary_max=need.salary_max,
+        created_at=need.created_at,
+        updated_at=need.updated_at,
+    )
+
+
+@router.post("/employer/needs", response_model=NeedResponse, status_code=201)
+def create_need(payload: NeedCreate, actor: EmployerActor, db: DbSession) -> NeedResponse:
+    company_id = _require_company_id(db, actor)
+    need = EmployerNeed(
+        company_id=company_id,
+        title=payload.title,
+        description=payload.description,
+        specialization=payload.specialization,
+        grades=list(payload.grades),
+        declared_stack=list(payload.declared_stack),
+        required_skills=[rs.model_dump() for rs in payload.required_skills],
+        work_format=payload.work_format,
+        salary_min=payload.salary_min,
+        salary_max=payload.salary_max,
+    )
+    db.add(need)
+    db.commit()
+    db.refresh(need)
+    return _need_to_response(need)
+
+
+@router.get("/employer/needs", response_model=NeedList)
+def list_needs(actor: EmployerActor, db: DbSession) -> NeedList:
+    company_id = _require_company_id(db, actor)
+    rows = db.scalars(
+        select(EmployerNeed)
+        .where(EmployerNeed.company_id == company_id)
+        .order_by(EmployerNeed.created_at.desc())
+    ).all()
+    return NeedList(items=[_need_to_response(n) for n in rows])
+
+
+@router.get("/employer/needs/{need_id}", response_model=NeedResponse)
+def get_need(need_id: UUID, actor: EmployerActor, db: DbSession) -> NeedResponse:
+    company_id = _require_company_id(db, actor)
+    need = db.get(EmployerNeed, str(need_id))
+    if need is None or need.company_id != company_id:
+        raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена.")
+    return _need_to_response(need)
+
+
+# --- Catalog & candidates --------------------------------------------------
 
 
 @router.get("/employer/categories", response_model=CategoryList)
 def list_categories(_: EmployerActor) -> CategoryList:
-    """Активные категории с количеством доступных кандидатов.
-
-    Пока работает на демонстрационных fixtures; после seed'а БД переключится
-    на запросы к базе без изменения формы ответа.
-    """
     items = [CategoryCard(**row) for row in service.category_stats()]
     return CategoryList(items=items)
 
 
-# --- Candidates ------------------------------------------------------------
-
-
 @router.get("/employer/candidates", response_model=CandidateList)
 def list_candidates(
-    _: EmployerActor,
-    specialization: Annotated[
-        Literal["backend", "qa"] | None,
-        Query(description="Фильтр по специализации кандидата."),
+    actor: EmployerActor,
+    db: DbSession,
+    specialization: Annotated[Literal["backend", "qa"] | None, Query()] = None,
+    grade: Annotated[Literal["junior", "middle", "senior"] | None, Query()] = None,
+    with_fsp_only: Annotated[bool, Query()] = False,
+    need_id: Annotated[
+        UUID | None,
+        Query(description="Если указано — рейтинг рассчитывается по формуле с R."),
     ] = None,
-    grade: Annotated[
-        Literal["junior", "middle", "senior"] | None,
-        Query(description="Фильтр по подтверждённому грейду."),
-    ] = None,
-    with_fsp_only: Annotated[
-        bool,
-        Query(description="Показывать только кандидатов с достижениями ФСП."),
-    ] = False,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> CandidateList:
-    """Подборка кандидатов с объяснимым score.
+    need_payload = None
+    applied_need_id: UUID | None = None
+    if need_id is not None:
+        company_id = _require_company_id(db, actor)
+        need = db.get(EmployerNeed, str(need_id))
+        if need is None or need.company_id != company_id:
+            raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена.")
+        need_payload = {
+            "specialization": need.specialization,
+            "grades": list(need.grades),
+            "required_skills": list(need.required_skills),
+        }
+        applied_need_id = UUID(need.id)
 
-    Формула (упрощённая, без потребности):
-      score = 0.90 * test_score + 0.10 * fsp_signal
-
-    После добавления /employer/needs и /employer/searches формула перейдёт
-    на `0.65*T + 0.25*R + 0.10*F` без изменения внешнего контракта.
-    """
     ranked = service.rank_candidates(
         specialization=specialization,
         grade=grade,
         with_fsp_only=with_fsp_only,
+        need=need_payload,
     )
 
     cards: list[CandidateCard] = []
@@ -195,4 +230,4 @@ def list_candidates(
             )
         )
 
-    return CandidateList(items=cards, total=len(ranked))
+    return CandidateList(items=cards, total=len(ranked), applied_need_id=applied_need_id)

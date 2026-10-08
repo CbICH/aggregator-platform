@@ -6,7 +6,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, EmailStr, Field
+from pydantic import AwareDatetime, EmailStr, Field, model_validator
 
 from app.contracts.schemas import DTO
 
@@ -91,11 +91,7 @@ class ReasonCard(DTO):
 
 
 class CandidateCard(DTO):
-    """Публичная карточка кандидата в выдаче работодателю.
-
-    Контакты и приватные поля НЕ входят — они доступны только после
-    принятия приглашения (эндпоинт модуля D).
-    """
+    """Публичная карточка кандидата в выдаче работодателю."""
 
     candidate_id: UUID
     display_name: str
@@ -117,3 +113,55 @@ class CandidateList(DTO):
 
     items: list[CandidateCard]
     total: int
+    applied_need_id: UUID | None = None
+
+
+# --- Needs (employer) ------------------------------------------------------
+
+
+class RequiredSkill(DTO):
+    """Проверяемый навык с весом внутри потребности."""
+
+    id: Annotated[str, Field(min_length=2, max_length=60)]
+    weight: Annotated[int, Field(ge=1, le=5)] = 1
+
+
+class NeedCreate(DTO):
+    """Тело POST /employer/needs — что присылает фронт при создании потребности."""
+
+    title: Annotated[str, Field(min_length=4, max_length=160)]
+    description: Annotated[str, Field(min_length=10, max_length=2000)]
+    specialization: Literal["backend", "qa"]
+    grades: Annotated[list[Literal["junior", "middle", "senior"]], Field(min_length=1, max_length=3)]
+    declared_stack: Annotated[list[Annotated[str, Field(min_length=1, max_length=30)]], Field(max_length=20)] = []
+    required_skills: Annotated[list[RequiredSkill], Field(min_length=1, max_length=10)]
+    work_format: Literal["remote", "hybrid", "office"]
+    salary_min: Annotated[int, Field(gt=0, le=10_000_000)] | None = None
+    salary_max: Annotated[int, Field(gt=0, le=10_000_000)] | None = None
+
+    @model_validator(mode="after")
+    def valid_salary(self):
+        if self.salary_min is not None and self.salary_max is not None:
+            if self.salary_min > self.salary_max:
+                raise ValueError("salary_min must not exceed salary_max")
+        return self
+
+
+class NeedResponse(DTO):
+    id: UUID
+    company_id: UUID
+    title: str
+    description: str
+    specialization: Literal["backend", "qa"]
+    grades: list[Literal["junior", "middle", "senior"]]
+    declared_stack: list[str]
+    required_skills: list[RequiredSkill]
+    work_format: Literal["remote", "hybrid", "office"]
+    salary_min: int | None = None
+    salary_max: int | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+
+class NeedList(DTO):
+    items: list[NeedResponse]
