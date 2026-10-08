@@ -37,14 +37,14 @@ function Workspace() {
     <p className="lead">{user?.email}</p>
     {!user?.email_verified ? <Notice>Подтвердите email, чтобы продолжить. <Link to="/check-email">Отправить письмо</Link> · <button className="inline-button" onClick={() => void refresh()}>Я подтвердил адрес</button></Notice> : <Notice>Email подтверждён. Ваш аккаунт готов к работе.</Notice>}
     <div className="module-grid">{(user?.role === 'candidate' ? [
-      ['01', 'Профиль', 'Расскажите об опыте и выберите, что увидит работодатель.'],
+      ['01', 'Профиль', 'Расскажите об опыте, настройте видимость и скачайте PDF.'],
       ['02', 'Подтверждение навыков', 'Пройдите тест и получите подтверждённую категорию.'],
       ['03', 'Предложения', 'Сравните задачи и зарплату, затем выберите подходящую команду.'],
     ] : [
       ['01', 'Потребность команды', 'Опишите задачи будущего сотрудника и нужные навыки.'],
       ['02', 'Подбор специалистов', 'Оцените подтверждённые навыки и основания рекомендации.'],
       ['03', 'Приглашения', 'Предложите кандидату конкретную работу и зарплату.'],
-    ]).map(([number, title, text]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p><span className="coming-soon">Скоро будет доступно</span></section>)}</div>
+    ]).map(([number, title, text]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p>{user?.role === 'candidate' && number === '01' ? <Link className="button primary" to="/candidate/profile">Заполнить профиль</Link> : number === '03' ? <Link className="button primary" to={user?.role === 'candidate' ? '/candidate/invitations' : '/employer/invitations'}>Открыть приглашения</Link> : user?.role === 'employer' && number === '02' ? <Link className="button primary" to="/employer/candidates">Открыть профили</Link> : <span className="coming-soon">Скоро будет доступно</span>}</section>)}</div>
   </main>;
 }
 
@@ -72,4 +72,3 @@ export function App() {
     <Route path="*" element={<main className="centered"><section><h1>Страница не найдена</h1><Link to="/">На главную</Link></section></main>} />
   </Routes><footer className="footer">ФСП Сигнал <span>От подтверждённых навыков — к новой команде</span></footer></AuthProvider>;
 }
-

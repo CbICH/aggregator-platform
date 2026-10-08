@@ -93,6 +93,9 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(catalogs_router, prefix="/api/v1")
     register_modules(app)
+    from app.modules.profiles.dependencies import configure_d
+
+    configure_d(app)
     return app
 
 

@@ -3,6 +3,8 @@ from alembic import context
 from app.core import models  # noqa: F401
 from app.core.config import Settings
 from app.core.db import Base, make_engine
+from app.modules.invitations import models as invitation_models  # noqa: F401
+from app.modules.profiles import models as profile_models  # noqa: F401
 
 config = context.config
 target_metadata = Base.metadata

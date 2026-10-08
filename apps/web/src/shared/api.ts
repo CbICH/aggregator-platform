@@ -5,7 +5,7 @@ export type Role = components['schemas']['Role'];
 export type Policy = components['schemas']['RegistrationPolicy'];
 
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string) { super(message); }
+  constructor(public status: number, public code: string, message: string, public fields?: Record<string, string>) { super(message); }
 }
 
 function csrfToken(): string {
@@ -22,8 +22,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     throw new ApiError(response.status, body?.error?.code ?? 'NETWORK_ERROR',
-      body?.error?.message ?? 'Не удалось выполнить запрос. Попробуйте снова.');
+      body?.error?.message ?? 'Не удалось выполнить запрос. Попробуйте снова.', body?.error?.fields);
   }
   return body as T;
 }
-

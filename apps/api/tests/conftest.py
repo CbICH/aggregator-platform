@@ -57,3 +57,52 @@ def register(client):
         )
 
     return create
+
+
+@pytest.fixture
+def d_world(app):
+    from doubles import AssessmentDouble, CompanyDouble, FspDouble
+    from fastapi.testclient import TestClient
+    from sqlalchemy import update
+
+    from app.core.models import User
+
+    assessments, companies = AssessmentDouble(), CompanyDouble()
+    app.state.assessment_read_factory = lambda db: assessments
+    app.state.company_read_factory = lambda db: companies
+    app.state.fsp_read_factory = lambda db: FspDouble()
+    clients = []
+
+    def account(email, role="candidate", verified=True, company_id=None):
+        client = TestClient(app)
+        clients.append(client)
+        response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": email,
+                "role": role,
+                "password": "correct horse battery",
+                "consent_accepted": True,
+                "consent_version": "registration-v1",
+            },
+        )
+        assert response.status_code == 202, response.text
+        if verified:
+            token = next(
+                token for address, token in reversed(app.state.mailer.messages) if address == email
+            )
+            assert (
+                client.post("/api/v1/auth/verify-email", json={"token": token}).status_code == 200
+            )
+        actor = client.post(
+            "/api/v1/auth/login", json={"email": email, "password": "correct horse battery"}
+        ).json()
+        if company_id:
+            with app.state.session_factory.begin() as db:
+                db.execute(update(User).where(User.id == actor["id"]).values(company_id=company_id))
+            companies.add(company_id, "Компания " + email.split("@")[0])
+        return client, actor["id"], {"X-CSRF-Token": client.cookies.get("signal_csrf")}
+
+    yield {"account": account, "assessments": assessments, "companies": companies}
+    for client in clients:
+        client.close()
