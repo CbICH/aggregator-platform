@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../shared/api';
+import type { components } from '../../shared/api.generated';
 import type { FeatureModule } from '../../shared/module';
 import { Field, Notice } from '../../shared/ui';
+
+type CandidatePublic = components['schemas']['CandidatePublic'];
+type CandidateListResponse = components['schemas']['CandidateList'];
 
 // --- Shared helpers --------------------------------------------------------
 
@@ -140,26 +144,6 @@ function CompanyPage() {
 // --- Candidates ------------------------------------------------------------
 
 
-interface VerifiedCategory {
-  specialization: string;
-  grade: string;
-  score: number;
-}
-
-interface CandidatePublic {
-  candidate_id: string;
-  display_name: string;
-  declared_stack: string[] | null;
-  roles: string[] | null;
-  experience_months: number | null;
-  hidden_fields: string[];
-  verified_category: VerifiedCategory | null;
-}
-
-interface CandidateListResponse {
-  items: CandidatePublic[];
-  total: number;
-}
 
 function CandidatesPage() {
   const [cards, setCards] = useState<CandidatePublic[]>([]);
@@ -209,30 +193,35 @@ function CandidatesPage() {
                 <h2 style={{ margin: 0 }}>{card.display_name}</h2>
                 <p style={{ margin: '4px 0 0', color: '#776b82', fontSize: 13 }}>
                   {card.verified_category
-                    ? <>{card.verified_category.specialization} · {card.verified_category.grade} · подтверждён тестом ({card.verified_category.score.toFixed(0)})</>
+                    ? <>{card.verified_category.specialization} · {card.verified_category.verified_grade} · подтверждён тестом ({card.verified_category.test_score.toFixed(0)})</>
                     : 'Категория не подтверждена'}
                 </p>
               </div>
               <Link to={`/employer/candidates/${card.candidate_id}`} className="button ghost">Открыть профиль →</Link>
             </header>
 
-            <dl className="evidence-grid" style={{ marginTop: 18, gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              <article>
-                <span>Роли</span>
-                <strong>{card.roles ? card.roles.join(', ') : '—'}</strong>
-                <p>{card.hidden_fields.includes('roles') ? 'Скрыто владельцем' : 'Из профиля'}</p>
-              </article>
-              <article>
-                <span>Стек</span>
-                <strong style={{ fontSize: 14, lineHeight: 1.4 }}>{card.declared_stack ? card.declared_stack.slice(0, 5).join(', ') : '—'}</strong>
-                <p>{card.hidden_fields.includes('declared_stack') ? 'Скрыто владельцем' : 'Заявлен, не подтверждён тестом'}</p>
-              </article>
-              <article>
-                <span>Опыт</span>
-                <strong>{card.experience_months != null ? `${Math.floor(card.experience_months / 12)} лет ${card.experience_months % 12} мес.` : '—'}</strong>
-                <p>{card.hidden_fields.includes('experience_months') ? 'Скрыто владельцем' : 'Заявленный стаж'}</p>
-              </article>
-            </dl>
+            {(() => {
+              const hidden = card.hidden_fields ?? [];
+              return (
+                <dl className="evidence-grid" style={{ marginTop: 18, gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                  <article>
+                    <span>Роли</span>
+                    <strong>{card.roles ? card.roles.join(', ') : '—'}</strong>
+                    <p>{hidden.includes('roles') ? 'Скрыто владельцем' : 'Из профиля'}</p>
+                  </article>
+                  <article>
+                    <span>Стек</span>
+                    <strong style={{ fontSize: 14, lineHeight: 1.4 }}>{card.declared_stack ? card.declared_stack.slice(0, 5).join(', ') : '—'}</strong>
+                    <p>{hidden.includes('declared_stack') ? 'Скрыто владельцем' : 'Заявлен, не подтверждён тестом'}</p>
+                  </article>
+                  <article>
+                    <span>Опыт</span>
+                    <strong>{card.experience_months != null ? `${Math.floor(card.experience_months / 12)} лет ${card.experience_months % 12} мес.` : '—'}</strong>
+                    <p>{hidden.includes('experience_months') ? 'Скрыто владельцем' : 'Заявленный стаж'}</p>
+                  </article>
+                </dl>
+              );
+            })()}
           </article>
         ))}
       </div>
