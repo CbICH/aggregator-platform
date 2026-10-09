@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.contracts.schemas import CompanySummary
-from app.modules.matching.models import Company
+from app.modules.matching.models import Company, EmployerNeed
 
 
 class SqlAlchemyCompanyRead:
@@ -23,8 +23,8 @@ class SqlAlchemyCompanyRead:
         )
 
     def owns_need(self, company_id: UUID, need_id: UUID) -> bool:
-        # The incoming C branch has no persisted needs yet; never authorize a supplied ID.
-        return False
+        need = self.db.get(EmployerNeed, str(need_id))
+        return bool(need and need.company_id == str(company_id))
 
     def owns_vacancy(self, company_id: UUID, vacancy_id: UUID) -> bool:
         return False

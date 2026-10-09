@@ -39,7 +39,7 @@ def main() -> int:
         staging = Path(name)
         if not str(staging).isascii():
             raise SystemExit("Set TMPDIR to an ASCII path for Docker BuildKit")
-        for folder in ("apps", "infra"):
+        for folder in ("apps", "infra", "fixtures"):
             shutil.copytree(ROOT / folder, staging / folder, ignore=IGNORE)
         for file in ("docker-compose.yml", ".dockerignore"):
             shutil.copy2(ROOT / file, staging / file)

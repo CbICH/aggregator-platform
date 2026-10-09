@@ -7,7 +7,14 @@ from sqlalchemy import create_engine, inspect, text
 
 
 @pytest.mark.parametrize(
-    "starting_revision", ["0001_core", "0003_d_snapshots", "0009_matching_companies"]
+    "starting_revision",
+    [
+        "0001_core",
+        "0003_d_snapshots",
+        "0009_matching_companies",
+        "0010_matching_needs",
+        "0011_assessment_survey_index",
+    ],
 )
 def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision):
     api_root = Path(__file__).resolve().parents[1]
@@ -71,13 +78,14 @@ def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision
         "contact_grants",
         "surveys",
         "companies",
+        "employer_needs",
         "verified_categories",
     }.issubset(inspect(engine).get_table_names())
     with engine.connect() as db:
         assert db.scalar(text("SELECT email FROM users")) == "migration@example.com"
         assert (
             db.scalar(text("SELECT version_num FROM alembic_version"))
-            == "0011_assessment_survey_index"
+            == "0012_merge_matching_needs"
         )
         if starting_revision == "0003_d_snapshots":
             assert (

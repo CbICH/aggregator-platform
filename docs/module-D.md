@@ -69,7 +69,7 @@ PDF создаётся ReportLab с включёнными Noto Sans (SIL OFL 1.
 
 ## Транзакции и интеграция
 
-Миграции `0002_d_profiles` и `0003_d_snapshots` следуют за `0001_core`. История D объединена с B/C (`0009_matching_companies`) ревизией `0010_merge_bcd`; общий head — `0011_assessment_survey_index`. Применённые ревизии не переписываются. Таблица компаний C уже существует; FK D к компании/потребности/вакансии пока не добавлены, ownership проверяется портами. Потребности и вакансии C ещё не реализованы.
+Миграции `0002_d_profiles` и `0003_d_snapshots` следуют за `0001_core`. История D объединена с B/C (`0009_matching_companies`) ревизией `0010_merge_bcd`; после добавления потребностей C общий head — `0012_merge_matching_needs`, соединяющий `0011_assessment_survey_index` и исходную `0010_matching_needs`. Применённые ревизии не переписываются. Таблицы компаний и потребностей C уже существуют; FK D к компании/потребности/вакансии пока не добавлены, ownership проверяется портами. Merge-ревизия не выполняет DDL: таблицы создаются исходными родительскими миграциями. Вакансии остаются P1.
 
 Сервисы выполняют flush; роутер владеет commit/rollback. Профиль используется как общий write-lock при privacy, отправке и решении; затем выполняется атомарный UPDATE приглашения. Это работает на PostgreSQL и SQLite без предположения о SQLite FOR UPDATE. Запись финала, события, согласия и grant атомарна. Audit хранит действие, UUID и request ID без резюме, email или телефона.
 
@@ -78,14 +78,15 @@ Composition root `configure_d(app)` предоставляет реальные 
 ```python
 app.state.assessment_read_factory = lambda db: RealAssessmentRead(db)
 app.state.company_read_factory = lambda db: RealCompanyRead(db)
-app.state.fsp_read_factory = lambda db: RealFspRead(db)
+# После реализации API связи и адаптера C:
+# app.state.fsp_read_factory = lambda db: RealFspRead(db)
 ```
 
-B реализует `get_verified(candidate_id)` и возвращает категорию именно этого кандидата. C реализует `get_summary(company_id)`, `owns_need(company_id, need_id)`; `owns_vacancy` предусмотрен портом для P1. D `ProfileRead` имеет `get_public`, `is_discoverable`, `list_public(actor, after, limit)`; C фильтрует только разрешённые публичные значения и повторно проверяет профиль перед показом snapshot. D `ContactAccess.get` возвращает DTO или None; внешний endpoint дополнительно проверяет роль, email и компанию.
+B реализует `get_verified(candidate_id)` и возвращает категорию именно этого кандидата. C реализует `get_summary(company_id)`, `owns_need(company_id, need_id)`; `owns_vacancy` предусмотрен портом для P1. D `ProfileRead` имеет `get_public`, `is_discoverable`, `list_public(actor, after, limit)`; Будущий live-подбор C должен читать только разрешённые публичные значения и повторно проверять профиль перед показом сохранённого результата. D `ContactAccess.get` возвращает DTO или None; внешний endpoint дополнительно проверяет роль, email и компанию.
 
-До подтверждения категории B профиль недоступен работодателю. Без компании actor получает `COMPANY_REQUIRED`; после создания компании C отправка работает. `owns_need` пока всегда False, поскольку потребности C ещё отсутствуют. Production не включает fake ports. Фикстуры и `tests/e2e_app.py` существуют только для контролируемой проверки D.
+До подтверждения категории B профиль недоступен работодателю. Без компании actor получает `COMPANY_REQUIRED`; после создания компании C отправка работает. `owns_need` проверяет сохранённую `EmployerNeed` и её `company_id`. Рабочие read-порты D не подменяются тестовыми doubles. Отдельная демо-подборка C на `/employer/matching/candidates` читает JSON-фикстуры, а `/employer/candidates` D — живые опубликованные профили. Демо-рейтинг пока не подключён к ProfileRead/AssessmentRead и не предоставляет переход к приглашению конкретного кандидата D.
 
-ФСП UI использует API C: `GET /candidate/fsp` → `FspEvidence`; `POST /candidate/fsp-link` с `{"fsp_id":"..."}` и `DELETE /candidate/fsp-link`. C должен подтвердить владение; ввод ID в D не назначает достижение. Доступны четыре состояния: not_linked, linked_empty, linked_with_data, unavailable. Если C отсутствует, UI показывает недоступность и основной путь остаётся доступен. DTO связи нужно синхронно подтвердить с C перед подключением.
+ФСП UI ожидает API C: `GET /candidate/fsp` → `FspEvidence`; `POST /candidate/fsp-link` с `{"fsp_id":"..."}` и `DELETE /candidate/fsp-link`. C должен подтвердить владение; ввод ID в D не назначает достижение. Доступны четыре состояния: not_linked, linked_empty, linked_with_data, unavailable. Если C отсутствует, UI показывает недоступность и основной путь остаётся доступен. На срезе 9 октября все три маршрута возвращают 404. Новый `DemoFspProvider` обслуживает синтетический рейтинг C и не реализует `FspRead` для D. ТЗ допускает собственные синтетические данные: внешний API ФСП не требуется для MVP, но рабочая привязка ID и согласованный адаптер необходимы.
 
 ## Проверки
 

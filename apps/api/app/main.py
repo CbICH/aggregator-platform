@@ -17,6 +17,7 @@ from app.core.mail import Mailer, SmtpMailer
 from app.core.models import User
 from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
+from app.modules.fsp.provider import DemoFspProvider
 from app.modules.matching.read import SqlAlchemyCompanyRead
 
 
@@ -50,6 +51,7 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.state.assessment_read = SqlAlchemyAssessmentRead(app.state.session_factory)
     app.state.assessment_read_factory = SqlAlchemyAssessmentRead
     app.state.company_read_factory = SqlAlchemyCompanyRead
+    app.state.fsp_provider = DemoFspProvider()
     app.state.mailer = mailer or SmtpMailer(cfg)
     install_errors(app)
 

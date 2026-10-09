@@ -3837,6 +3837,786 @@
         }
       }
     },
+    "/api/v1/employer/needs": {
+      "post": {
+        "tags": [
+          "Matching"
+        ],
+        "summary": "Create Need",
+        "operationId": "create_need_api_v1_employer_needs_post",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Matching"
+        ],
+        "summary": "List Needs",
+        "operationId": "list_needs_api_v1_employer_needs_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employer/needs/{need_id}": {
+      "get": {
+        "tags": [
+          "Matching"
+        ],
+        "summary": "Get Need",
+        "operationId": "get_need_api_v1_employer_needs__need_id__get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "need_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Need Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employer/categories": {
+      "get": {
+        "tags": [
+          "Matching"
+        ],
+        "summary": "List Categories",
+        "operationId": "list_categories_api_v1_employer_categories_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employer/matching/candidates": {
+      "get": {
+        "tags": [
+          "Matching"
+        ],
+        "summary": "Демонстрационная подборка C из синтетических фикстур",
+        "operationId": "list_candidates_api_v1_employer_matching_candidates_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "specialization",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "backend",
+                    "qa"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialization"
+            }
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "junior",
+                    "middle",
+                    "senior"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade"
+            }
+          },
+          {
+            "name": "with_fsp_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "With Fsp Only"
+            }
+          },
+          {
+            "name": "need_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Если указано — рейтинг рассчитывается по формуле с R.",
+              "title": "Need Id"
+            },
+            "description": "Если указано — рейтинг рассчитывается по формуле с R."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/candidate/profile.pdf": {
       "get": {
         "tags": [
@@ -6708,6 +7488,111 @@
         ],
         "title": "AssessmentStart"
       },
+      "CandidateCard": {
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Candidate Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": [
+              "backend",
+              "qa"
+            ],
+            "title": "Specialization"
+          },
+          "verified_grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ],
+            "title": "Verified Grade"
+          },
+          "category_code": {
+            "type": "string",
+            "title": "Category Code"
+          },
+          "experience_years": {
+            "type": "integer",
+            "title": "Experience Years"
+          },
+          "work_format": {
+            "type": "string",
+            "title": "Work Format"
+          },
+          "declared_stack": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Declared Stack"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "components": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Components"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillOnCard"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "fsp_status": {
+            "type": "string",
+            "enum": [
+              "not_linked",
+              "linked_empty",
+              "linked_with_data",
+              "unavailable"
+            ],
+            "title": "Fsp Status"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCard"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "display_name",
+          "specialization",
+          "verified_grade",
+          "category_code",
+          "experience_years",
+          "work_format",
+          "declared_stack",
+          "score",
+          "components",
+          "skills",
+          "fsp_status",
+          "reasons"
+        ],
+        "title": "CandidateCard",
+        "description": "Публичная карточка кандидата в выдаче работодателю."
+      },
       "CandidateContacts": {
         "properties": {
           "candidate_id": {
@@ -6749,6 +7634,41 @@
           "candidate_id"
         ],
         "title": "CandidateContacts"
+      },
+      "CandidateList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateCard"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "applied_need_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied Need Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "CandidateList",
+        "description": "Отсортированный список кандидатов для работодателя."
       },
       "CandidatePublic": {
         "properties": {
@@ -7028,6 +7948,50 @@
         ],
         "title": "Catalogs"
       },
+      "CategoryCard": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": [
+              "backend",
+              "qa"
+            ],
+            "title": "Specialization"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "junior",
+              "middle",
+              "senior"
+            ],
+            "title": "Grade"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "specialization",
+          "grade",
+          "active",
+          "candidate_count"
+        ],
+        "title": "CategoryCard",
+        "description": "Короткая справочная карточка категории с количеством кандидатов."
+      },
       "CategoryConfirm": {
         "properties": {
           "assessment_id": {
@@ -7091,6 +8055,23 @@
           "next_change_at"
         ],
         "title": "CategoryHistoryItem"
+      },
+      "CategoryList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryCard"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "CategoryList"
       },
       "CategoryState": {
         "properties": {
@@ -7988,6 +8969,241 @@
         ],
         "title": "Message"
       },
+      "NeedCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 4,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Description"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": [
+              "backend",
+              "qa"
+            ],
+            "title": "Specialization"
+          },
+          "grades": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "junior",
+                "middle",
+                "senior"
+              ]
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Grades"
+          },
+          "declared_stack": {
+            "items": {
+              "type": "string",
+              "maxLength": 30,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Declared Stack",
+            "default": []
+          },
+          "required_skills": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredSkill"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Required Skills"
+          },
+          "work_format": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ],
+            "title": "Work Format"
+          },
+          "salary_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Min"
+          },
+          "salary_max": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Max"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "specialization",
+          "grades",
+          "required_skills",
+          "work_format"
+        ],
+        "title": "NeedCreate",
+        "description": "Тело POST /employer/needs — что присылает фронт при создании потребности."
+      },
+      "NeedList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NeedResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "NeedList"
+      },
+      "NeedResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Company Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": [
+              "backend",
+              "qa"
+            ],
+            "title": "Specialization"
+          },
+          "grades": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "junior",
+                "middle",
+                "senior"
+              ]
+            },
+            "type": "array",
+            "title": "Grades"
+          },
+          "declared_stack": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Declared Stack"
+          },
+          "required_skills": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredSkill"
+            },
+            "type": "array",
+            "title": "Required Skills"
+          },
+          "work_format": {
+            "type": "string",
+            "enum": [
+              "remote",
+              "hybrid",
+              "office"
+            ],
+            "title": "Work Format"
+          },
+          "salary_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Min"
+          },
+          "salary_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salary Max"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "company_id",
+          "title",
+          "description",
+          "specialization",
+          "grades",
+          "declared_stack",
+          "required_skills",
+          "work_format",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NeedResponse"
+      },
       "PilotAttemptPublic": {
         "properties": {
           "id": {
@@ -8691,6 +9907,67 @@
         ],
         "title": "PublicProfileList"
       },
+      "ReasonCard": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "ReasonCard",
+        "description": "Одна строка «почему подходит» в карточке кандидата."
+      },
       "RegisterRequest": {
         "properties": {
           "email": {
@@ -8746,6 +10023,30 @@
           "text"
         ],
         "title": "RegistrationPolicy"
+      },
+      "RequiredSkill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Id"
+          },
+          "weight": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Weight",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "RequiredSkill",
+        "description": "Проверяемый навык с весом внутри потребности."
       },
       "Role": {
         "type": "string",
@@ -8822,6 +10123,28 @@
           "score"
         ],
         "title": "SkillEvidence"
+      },
+      "SkillOnCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "score"
+        ],
+        "title": "SkillOnCard",
+        "description": "Навык с баллом внутри карточки кандидата."
       },
       "SurveyCreate": {
         "properties": {
