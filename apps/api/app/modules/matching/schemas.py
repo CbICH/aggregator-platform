@@ -10,7 +10,6 @@ from pydantic import AwareDatetime, EmailStr, Field, model_validator
 
 from app.contracts.schemas import DTO
 
-
 # --- Company ---------------------------------------------------------------
 
 
@@ -132,8 +131,12 @@ class NeedCreate(DTO):
     title: Annotated[str, Field(min_length=4, max_length=160)]
     description: Annotated[str, Field(min_length=10, max_length=2000)]
     specialization: Literal["backend", "qa"]
-    grades: Annotated[list[Literal["junior", "middle", "senior"]], Field(min_length=1, max_length=3)]
-    declared_stack: Annotated[list[Annotated[str, Field(min_length=1, max_length=30)]], Field(max_length=20)] = []
+    grades: Annotated[
+        list[Literal["junior", "middle", "senior"]], Field(min_length=1, max_length=3)
+    ]
+    declared_stack: Annotated[
+        list[Annotated[str, Field(min_length=1, max_length=30)]], Field(max_length=20)
+    ] = []
     required_skills: Annotated[list[RequiredSkill], Field(min_length=1, max_length=10)]
     work_format: Literal["remote", "hybrid", "office"]
     salary_min: Annotated[int, Field(gt=0, le=10_000_000)] | None = None

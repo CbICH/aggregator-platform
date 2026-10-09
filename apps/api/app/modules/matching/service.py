@@ -117,21 +117,27 @@ def compute_reasons(
     reasons: list[dict[str, Any]] = []
     verified_grade = candidate.get("verified_grade")
     if verified_grade:
-        reasons.append({"code": "GRADE_VERIFIED", "label": f"{verified_grade.title()} подтверждён тестом"})
+        reasons.append(
+            {"code": "GRADE_VERIFIED", "label": f"{verified_grade.title()} подтверждён тестом"}
+        )
 
     if coverage:
         for match in coverage.get("covered", []):
-            reasons.append({
-                "code": "SKILL_MATCH",
-                "skill_id": match["id"],
-                "score": match["score"],
-            })
+            reasons.append(
+                {
+                    "code": "SKILL_MATCH",
+                    "skill_id": match["id"],
+                    "score": match["score"],
+                }
+            )
         for skill_id in coverage.get("not_assessed", []):
-            reasons.append({
-                "code": "SKILL_NOT_ASSESSED",
-                "skill_id": skill_id,
-                "label": f"{skill_id} не проверялся в тесте",
-            })
+            reasons.append(
+                {
+                    "code": "SKILL_NOT_ASSESSED",
+                    "skill_id": skill_id,
+                    "label": f"{skill_id} не проверялся в тесте",
+                }
+            )
     else:
         for skill in candidate.get("skills", []):
             reasons.append({"code": "SKILL", "skill_id": skill["id"], "score": skill["score"]})
@@ -141,11 +147,13 @@ def compute_reasons(
             signal.achievements,
             key=lambda a: FSP_SIGNAL_BY_RESULT.get(a.result.lower(), 0),
         )
-        reasons.append({
-            "code": "FSP_SIGNAL",
-            "label": f"{top.result.capitalize()}: {top.event}",
-            "date": top.date,
-        })
+        reasons.append(
+            {
+                "code": "FSP_SIGNAL",
+                "label": f"{top.result.capitalize()}: {top.event}",
+                "date": top.date,
+            }
+        )
     elif signal.status == "unavailable":
         reasons.append({"code": "FSP_UNAVAILABLE", "label": "Статус ФСП временно недоступен"})
     return reasons
@@ -210,13 +218,15 @@ def rank_candidates(
             components = {"test": test_score, "fsp": fsp}
             reasons = compute_reasons(candidate, signal)
 
-        ranked.append(RankedCandidate(
-            candidate=candidate,
-            score=score,
-            components=components,
-            reasons=reasons,
-            fsp_signal=signal,
-        ))
+        ranked.append(
+            RankedCandidate(
+                candidate=candidate,
+                score=score,
+                components=components,
+                reasons=reasons,
+                fsp_signal=signal,
+            )
+        )
 
     ranked.sort(key=lambda r: (-r.score, r.candidate["candidate_id"]))
     return ranked

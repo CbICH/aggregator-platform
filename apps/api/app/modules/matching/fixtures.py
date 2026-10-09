@@ -17,8 +17,8 @@ _HERE = Path(__file__).resolve()
 # структура разная. Используем try/except, потому что некорректный
 # индекс parents[] падает с IndexError прямо на вычислении.
 _PATH_ATTEMPTS: tuple[tuple[int, str], ...] = (
-    (3, "fixtures-matching"),           # Docker: /app/fixtures-matching
-    (5, "fixtures/matching"),           # Local dev: <repo>/fixtures/matching
+    (3, "fixtures-matching"),  # Docker: /app/fixtures-matching
+    (5, "fixtures/matching"),  # Local dev: <repo>/fixtures/matching
 )
 
 
@@ -32,9 +32,7 @@ def _resolve_root() -> Path:
         tried.append(str(candidate))
         if (candidate / "candidates.json").exists():
             return candidate
-    raise FileNotFoundError(
-        "Не найдена папка fixtures/matching. Попробовано: " + ", ".join(tried)
-    )
+    raise FileNotFoundError("Не найдена папка fixtures/matching. Попробовано: " + ", ".join(tried))
 
 
 @lru_cache(maxsize=1)

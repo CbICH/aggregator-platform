@@ -57,7 +57,11 @@ FspPort = Annotated[FspProvider, Depends(_fsp_provider)]
 def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) -> Company:
     existing = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if existing is not None:
-        raise AppError(409, "COMPANY_EXISTS", "У вас уже есть компания. Используйте PATCH /company для обновления.")
+        raise AppError(
+            409,
+            "COMPANY_EXISTS",
+            "У вас уже есть компания. Используйте PATCH /company для обновления.",
+        )
 
     company = Company(
         owner_user_id=str(actor.user_id),
@@ -85,7 +89,9 @@ def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) 
 def get_my_company(actor: EmployerActor, db: DbSession) -> Company:
     company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
-        raise AppError(404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Создайте через POST /company.")
+        raise AppError(
+            404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Создайте через POST /company."
+        )
     return company
 
 
@@ -93,7 +99,9 @@ def get_my_company(actor: EmployerActor, db: DbSession) -> Company:
 def update_my_company(payload: CompanyUpdate, actor: EmployerActor, db: DbSession) -> Company:
     company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
-        raise AppError(404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Сначала выполните POST /company.")
+        raise AppError(
+            404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Сначала выполните POST /company."
+        )
 
     changes = payload.model_dump(exclude_unset=True)
     for key, value in changes.items():
