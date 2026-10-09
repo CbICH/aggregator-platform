@@ -437,36 +437,33 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get My Company */
+        /**
+         * Get My Company
+         * @description Прочитать профиль своей компании.
+         *
+         *     Возвращает 404 COMPANY_NOT_FOUND, если компания ещё не создана.
+         */
         get: operations["get_my_company_api_v1_company_get"];
         put?: never;
         /**
          * Create Company
          * @description Создать компанию для текущего работодателя.
+         *
+         *     Возвращает 409 COMPANY_EXISTS, если у работодателя уже есть компания.
+         *     После успешного создания company_id записывается в users.company_id, чтобы
+         *     ActorContext в следующих запросах содержал связь.
          */
         post: operations["create_company_api_v1_company_post"];
         delete?: never;
         options?: never;
         head?: never;
-        /** Update My Company */
+        /**
+         * Update My Company
+         * @description Частично обновить свою компанию.
+         *
+         *     Отправленные поля применяются; пропущенные остаются как были.
+         */
         patch: operations["update_my_company_api_v1_company_patch"];
-        trace?: never;
-    };
-    "/api/v1/employer/candidates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Candidates */
-        get: operations["candidates_api_v1_employer_candidates_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/candidate/profile.pdf": {
@@ -571,6 +568,23 @@ export interface paths {
         };
         /** Context */
         get: operations["context_api_v1_employer_invitation_context_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Candidates */
+        get: operations["candidates_api_v1_employer_candidates_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -872,19 +886,6 @@ export interface components {
              * @default
              */
             contact_method: string;
-        };
-        /**
-         * CandidateList
-         * @description Отсортированный список публичных карточек кандидатов.
-         *
-         *     Карточка — `CandidatePublic` из общих контрактов (`app.contracts.schemas`),
-         *     собирается блоком D с учётом настроек приватности каждого кандидата.
-         */
-        CandidateList: {
-            /** Items */
-            items: components["schemas"]["CandidatePublic"][];
-            /** Total */
-            total: number;
         };
         /** CandidatePublic */
         CandidatePublic: {
@@ -4724,113 +4725,6 @@ export interface operations {
             };
         };
     };
-    candidates_api_v1_employer_candidates_get: {
-        parameters: {
-            query?: {
-                cursor?: string | null;
-                limit?: number;
-            };
-            header?: {
-                /** @description Required for authenticated mutations; copy signal_csrf cookie */
-                "X-CSRF-Token"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicProfileList"];
-                };
-            };
-            /** @description Некорректная команда */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Требуется вход */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Действие запрещено */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Объект недоступен */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Конфликт состояния */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Ошибка полей */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Лимит запросов */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Внутренняя ошибка */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Зависимость временно недоступна */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     profile_pdf_api_v1_candidate_profile_pdf_get: {
         parameters: {
             query?: never;
@@ -5590,6 +5484,113 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmployerInvitationContext"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    candidates_api_v1_employer_candidates_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProfileList"];
                 };
             };
             /** @description Некорректная команда */

@@ -8,9 +8,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, EmailStr, Field, field_validator
 
-from app.contracts.schemas import DTO, CandidatePublic
-
-# --- Company ---------------------------------------------------------------
+from app.contracts.schemas import DTO
 
 
 class CompanyCreate(DTO):
@@ -64,17 +62,3 @@ class CompanyResponse(DTO):
     contact_email: EmailStr
     created_at: AwareDatetime
     updated_at: AwareDatetime
-
-
-# --- Candidates ------------------------------------------------------------
-
-
-class CandidateList(DTO):
-    """Отсортированный список публичных карточек кандидатов.
-
-    Карточка — `CandidatePublic` из общих контрактов (`app.contracts.schemas`),
-    собирается блоком D с учётом настроек приватности каждого кандидата.
-    """
-
-    items: list[CandidatePublic]
-    total: int

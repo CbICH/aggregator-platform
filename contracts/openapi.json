@@ -3837,171 +3837,6 @@
         }
       }
     },
-    "/api/v1/employer/candidates": {
-      "get": {
-        "tags": [
-          "Invitations"
-        ],
-        "summary": "Candidates",
-        "operationId": "candidates_api_v1_employer_candidates_get",
-        "security": [
-          {
-            "APIKeyCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Required for authenticated mutations; copy signal_csrf cookie",
-              "title": "X-Csrf-Token"
-            },
-            "description": "Required for authenticated mutations; copy signal_csrf cookie"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicProfileList"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Некорректная команда",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Требуется вход",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Действие запрещено",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Объект недоступен",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Конфликт состояния",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Ошибка полей",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Лимит запросов",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Внутренняя ошибка",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Зависимость временно недоступна",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/candidate/profile.pdf": {
       "get": {
         "tags": [
@@ -5022,6 +4857,171 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EmployerInvitationContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректная команда",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Требуется вход",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Действие запрещено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Объект недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт состояния",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка полей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Лимит запросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Зависимость временно недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employer/candidates": {
+      "get": {
+        "tags": [
+          "Invitations"
+        ],
+        "summary": "Candidates",
+        "operationId": "candidates_api_v1_employer_candidates_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required for authenticated mutations; copy signal_csrf cookie",
+              "title": "X-Csrf-Token"
+            },
+            "description": "Required for authenticated mutations; copy signal_csrf cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfileList"
                 }
               }
             }
@@ -6708,111 +6708,6 @@
         ],
         "title": "AssessmentStart"
       },
-      "CandidateCard": {
-        "properties": {
-          "candidate_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Candidate Id"
-          },
-          "display_name": {
-            "type": "string",
-            "title": "Display Name"
-          },
-          "specialization": {
-            "type": "string",
-            "enum": [
-              "backend",
-              "qa"
-            ],
-            "title": "Specialization"
-          },
-          "verified_grade": {
-            "type": "string",
-            "enum": [
-              "junior",
-              "middle",
-              "senior"
-            ],
-            "title": "Verified Grade"
-          },
-          "category_code": {
-            "type": "string",
-            "title": "Category Code"
-          },
-          "experience_years": {
-            "type": "integer",
-            "title": "Experience Years"
-          },
-          "work_format": {
-            "type": "string",
-            "title": "Work Format"
-          },
-          "declared_stack": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Declared Stack"
-          },
-          "score": {
-            "type": "number",
-            "maximum": 100.0,
-            "minimum": 0.0,
-            "title": "Score"
-          },
-          "components": {
-            "additionalProperties": {
-              "type": "number"
-            },
-            "type": "object",
-            "title": "Components"
-          },
-          "skills": {
-            "items": {
-              "$ref": "#/components/schemas/SkillOnCard"
-            },
-            "type": "array",
-            "title": "Skills"
-          },
-          "fsp_status": {
-            "type": "string",
-            "enum": [
-              "not_linked",
-              "linked_empty",
-              "linked_with_data",
-              "unavailable"
-            ],
-            "title": "Fsp Status"
-          },
-          "reasons": {
-            "items": {
-              "$ref": "#/components/schemas/ReasonCard"
-            },
-            "type": "array",
-            "title": "Reasons"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "candidate_id",
-          "display_name",
-          "specialization",
-          "verified_grade",
-          "category_code",
-          "experience_years",
-          "work_format",
-          "declared_stack",
-          "score",
-          "components",
-          "skills",
-          "fsp_status",
-          "reasons"
-        ],
-        "title": "CandidateCard",
-        "description": "Публичная карточка кандидата в выдаче работодателю."
-      },
       "CandidateContacts": {
         "properties": {
           "candidate_id": {
@@ -6854,29 +6749,6 @@
           "candidate_id"
         ],
         "title": "CandidateContacts"
-      },
-      "CandidateList": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CandidateCard"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "total"
-        ],
-        "title": "CandidateList",
-        "description": "Отсортированный список кандидатов для работодателя."
       },
       "CandidatePublic": {
         "properties": {
@@ -8819,67 +8691,6 @@
         ],
         "title": "PublicProfileList"
       },
-      "ReasonCard": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code"
-          },
-          "label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Label"
-          },
-          "skill_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Skill Id"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "number",
-                "maximum": 100.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          },
-          "date": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Date"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "code"
-        ],
-        "title": "ReasonCard",
-        "description": "Одна строка «почему подходит» в карточке кандидата."
-      },
       "RegisterRequest": {
         "properties": {
           "email": {
@@ -9011,28 +8822,6 @@
           "score"
         ],
         "title": "SkillEvidence"
-      },
-      "SkillOnCard": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "score": {
-            "type": "number",
-            "maximum": 100.0,
-            "minimum": 0.0,
-            "title": "Score"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "score"
-        ],
-        "title": "SkillOnCard",
-        "description": "Навык с баллом внутри карточки кандидата."
       },
       "SurveyCreate": {
         "properties": {

@@ -6,7 +6,7 @@ import type { FeatureModule } from '../../shared/module';
 import { Field, Notice } from '../../shared/ui';
 
 type CandidatePublic = components['schemas']['CandidatePublic'];
-type CandidateListResponse = components['schemas']['CandidateList'];
+type PublicProfileList = components['schemas']['PublicProfileList'];
 
 // --- Shared helpers --------------------------------------------------------
 
@@ -147,15 +147,14 @@ function CompanyPage() {
 
 function CandidatesPage() {
   const [cards, setCards] = useState<CandidatePublic[]>([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const data = await api<CandidateListResponse>('/employer/candidates');
-      setCards(data.items); setTotal(data.total);
+      const data = await api<PublicProfileList>('/employer/candidates');
+      setCards(data.items);
     } catch (reason) { setError(message(reason)); } finally { setLoading(false); }
   }, []);
 
@@ -172,7 +171,7 @@ function CandidatesPage() {
             на публикацию. Скрытые поля — только с согласия владельца.
           </p>
         </div>
-        <strong className="participant-code">{total} в банке</strong>
+        <strong className="participant-code">{cards.length} в банке</strong>
       </section>
 
       {error && <Notice error>{error}</Notice>}
