@@ -3,6 +3,12 @@
 POST /api/v1/company   — создать компанию (один раз на одного работодателя).
 GET  /api/v1/company   — получить свою компанию.
 PATCH /api/v1/company  — изменить поля своей компании.
+
+Эндпоинты подборки кандидатов (`/employer/candidates`,
+`/employer/candidates/{candidate_id}`, `/employer/candidates/{candidate_id}/contacts`)
+обслуживаются модулем D (`app.modules.invitations.router`), поскольку живут в
+privacy/invitation-потоке и опираются на профиль блока D с учётом настроек
+приватности каждого кандидата.
 """
 
 from datetime import UTC
@@ -27,6 +33,11 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 
 def response(company: Company) -> CompanyResponse:
+    """Сериализация Company → CompanyResponse с нормализацией tzinfo.
+
+    SQLite возвращает naive datetime; продовский PostgreSQL — aware. API-схема
+    требует AwareDatetime, поэтому подставляем UTC, если tzinfo отсутствует.
+    """
     data = {name: getattr(company, name) for name in CompanyResponse.model_fields}
     for field in ("created_at", "updated_at"):
         if data[field].tzinfo is None:
@@ -46,7 +57,6 @@ def create_company(
     После успешного создания company_id записывается в users.company_id, чтобы
     ActorContext в следующих запросах содержал связь.
     """
-    # Serialize creation on both SQLite and PostgreSQL; a fresh request gets company_id.
     db.execute(update(User).where(User.id == str(actor.user_id)).values(company_id=User.company_id))
     existing = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if existing is not None:
@@ -67,7 +77,7 @@ def create_company(
         contact_email=payload.contact_email,
     )
     db.add(company)
-    db.flush()  # присваивает company.id до коммита
+    db.flush()
 
     user = db.get(User, str(actor.user_id))
     if user is not None:
