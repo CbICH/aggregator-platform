@@ -39,10 +39,13 @@ def to_verified_category(db: Session, record: VerifiedCategoryRecord) -> Verifie
 class SqlAlchemyAssessmentRead:
     """Implementation of ``AssessmentRead`` for C/D module composition."""
 
-    def __init__(self, session_factory: Callable[[], Session]):
+    def __init__(self, session_factory: Callable[[], Session] | Session):
         self._session_factory = session_factory
 
     def get_verified(self, candidate_id: UUID) -> VerifiedCategory | None:
+        if isinstance(self._session_factory, Session):
+            record = self._session_factory.get(VerifiedCategoryRecord, str(candidate_id))
+            return to_verified_category(self._session_factory, record) if record else None
         with self._session_factory() as db:
             record = db.get(VerifiedCategoryRecord, str(candidate_id))
             return to_verified_category(db, record) if record else None

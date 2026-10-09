@@ -1,0 +1,28 @@
+{
+  "description": "Только синтетические сценарии D. Production не загружает эти подтверждения и компании.",
+  "fixed_time": "2026-10-07T12:00:00Z",
+  "candidates": [
+    {"scenario": "D01", "id": "10000000-0000-4000-8000-000000000001", "email": "d01@example.com", "verified": true, "publication": true, "category": true, "visible_fields": ["roles", "declared_stack", "experience_months"], "long_resume": false},
+    {"scenario": "D02", "id": "10000000-0000-4000-8000-000000000002", "email": "d02@example.com", "verified": true, "publication": true, "category": true, "visible_fields": ["roles"], "long_resume": false},
+    {"scenario": "D03", "id": "10000000-0000-4000-8000-000000000003", "email": "d03@example.com", "verified": false, "publication": false, "category": false, "visible_fields": [], "long_resume": false},
+    {"scenario": "D04", "id": "10000000-0000-4000-8000-000000000004", "email": "d04@example.com", "verified": true, "publication": false, "category": true, "visible_fields": ["roles"], "long_resume": false},
+    {"scenario": "D05", "id": "10000000-0000-4000-8000-000000000005", "email": "d05@example.com", "verified": true, "publication": true, "category": true, "visible_fields": ["roles", "declared_stack"], "long_resume": true}
+  ],
+  "companies": [
+    {"id": "20000000-0000-4000-8000-000000000001", "user_id": "40000000-0000-4000-8000-000000000001", "email": "e01@example.com", "name": "Тестовая компания E01"},
+    {"id": "20000000-0000-4000-8000-000000000002", "user_id": "40000000-0000-4000-8000-000000000002", "email": "e02@example.com", "name": "Тестовая компания E02"}
+  ],
+  "invitations": [
+    {"id": "50000000-0000-4000-8000-000000000001", "scenario": "I01", "candidate_id": "10000000-0000-4000-8000-000000000005", "company_id": "20000000-0000-4000-8000-000000000001", "actor_id": "40000000-0000-4000-8000-000000000001", "status": "sent"},
+    {"id": "50000000-0000-4000-8000-000000000002", "scenario": "I02", "candidate_id": "10000000-0000-4000-8000-000000000005", "company_id": "20000000-0000-4000-8000-000000000002", "actor_id": "40000000-0000-4000-8000-000000000002", "status": "viewed"},
+    {"id": "50000000-0000-4000-8000-000000000003", "scenario": "I03", "candidate_id": "10000000-0000-4000-8000-000000000002", "company_id": "20000000-0000-4000-8000-000000000002", "actor_id": "40000000-0000-4000-8000-000000000002", "status": "accepted"},
+    {"id": "50000000-0000-4000-8000-000000000004", "scenario": "I04", "candidate_id": "10000000-0000-4000-8000-000000000004", "company_id": "20000000-0000-4000-8000-000000000001", "actor_id": "40000000-0000-4000-8000-000000000001", "status": "declined"}
+  ],
+  "checks": [
+    {"scenario": "T01", "behavior": "same_idempotency_key", "test": "test_replay_and_different_payload_same_key"},
+    {"scenario": "T02", "behavior": "concurrent_accept_decline", "test": "test_concurrent_decisions_have_one_final_status_and_one_event"},
+    {"scenario": "P01", "behavior": "invalid_salary", "salary": {"min": 200000, "max": 100000}, "test": "test_invalid_salary_rejected_before_storage"},
+    {"scenario": "P02", "behavior": "without_vacancy", "vacancy_id": null, "test": "test_full_invitation_flow_and_snapshot"},
+    {"scenario": "P03", "behavior": "publication_revoked_after_search_snapshot", "test": "test_live_projection_hidden_fields_and_withdrawal"}
+  ]
+}

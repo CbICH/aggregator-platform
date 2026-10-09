@@ -17,6 +17,7 @@ from app.core.mail import Mailer, SmtpMailer
 from app.core.models import User
 from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
+from app.modules.matching.read import SqlAlchemyCompanyRead
 
 
 class Health(DTO):
@@ -47,6 +48,8 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.state.session_factory = make_session_factory(engine)
     # B exposes only the read-only contract to modules C/D; neither gets its write models.
     app.state.assessment_read = SqlAlchemyAssessmentRead(app.state.session_factory)
+    app.state.assessment_read_factory = SqlAlchemyAssessmentRead
+    app.state.company_read_factory = SqlAlchemyCompanyRead
     app.state.mailer = mailer or SmtpMailer(cfg)
     install_errors(app)
 
@@ -96,6 +99,9 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(catalogs_router, prefix="/api/v1")
     register_modules(app)
+    from app.modules.profiles.dependencies import configure_d
+
+    configure_d(app)
     return app
 
 

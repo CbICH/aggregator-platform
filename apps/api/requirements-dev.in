@@ -4,4 +4,4 @@ httpx>=0.28,<1
 ruff>=0.9,<1
 aiosmtpd>=1.4,<2
 pip-tools>=7,<8
-
+pypdf>=6,<7
