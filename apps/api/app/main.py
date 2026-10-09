@@ -19,6 +19,7 @@ from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
 from app.modules.fsp.provider import DemoFspProvider
 from app.modules.matching.read import SqlAlchemyCompanyRead
+from app.modules.profiles.dependencies import configure_d
 
 
 class Health(DTO):
@@ -52,6 +53,8 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     # D requires factories (not instances) to build read-ports with the test session factory.
     app.state.assessment_read_factory = SqlAlchemyAssessmentRead
     app.state.company_read_factory = SqlAlchemyCompanyRead
+    # D's own factories (profile_read_factory, contact_access_factory) composed from its ports.
+    configure_d(app)
     # C's FSP port — DemoFspProvider читает фикстуры; в проде подменяется на HttpFspProvider.
     app.state.fsp_provider = DemoFspProvider()
     app.state.mailer = mailer or SmtpMailer(cfg)

@@ -1,12 +1,31 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../shared/api';
-import type { components } from '../../shared/api.generated';
 import type { FeatureModule } from '../../shared/module';
 import { Field, Notice } from '../../shared/ui';
 
-type CompanyResponse = components['schemas']['CompanyResponse'];
-type CandidateCard = components['schemas']['CandidateCard'];
-type CandidateList = components['schemas']['CandidateList'];
+// --- Shared helpers --------------------------------------------------------
+
+function message(error: unknown) {
+  return error instanceof ApiError
+    ? error.message
+    : 'Не удалось выполнить действие. Повторите попытку.';
+}
+
+// --- Company ---------------------------------------------------------------
+
+interface CompanyResponse {
+  id: string;
+  name: string;
+  description: string;
+  industry: string;
+  city: string;
+  contact_name: string;
+  contact_role: string | null;
+  contact_email: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface CompanyForm {
   name: string;
@@ -18,29 +37,19 @@ interface CompanyForm {
   contact_email: string;
 }
 
-const EMPTY_FORM: CompanyForm = {
-  name: '',
-  description: '',
-  industry: '',
-  city: '',
-  contact_name: '',
-  contact_role: '',
-  contact_email: '',
+const EMPTY_COMPANY_FORM: CompanyForm = {
+  name: '', description: '', industry: '', city: '',
+  contact_name: '', contact_role: '', contact_email: '',
 };
 
-function toForm(company: CompanyResponse): CompanyForm {
+function toCompanyForm(c: CompanyResponse): CompanyForm {
   return {
-    name: company.name,
-    description: company.description,
-    industry: company.industry,
-    city: company.city,
-    contact_name: company.contact_name,
-    contact_role: company.contact_role ?? '',
-    contact_email: company.contact_email,
+    name: c.name, description: c.description, industry: c.industry, city: c.city,
+    contact_name: c.contact_name, contact_role: c.contact_role ?? '', contact_email: c.contact_email,
   };
 }
 
-function toPayload(form: CompanyForm) {
+function toCompanyPayload(form: CompanyForm) {
   const role = form.contact_role.trim();
   return {
     name: form.name.trim(),
@@ -53,19 +62,9 @@ function toPayload(form: CompanyForm) {
   };
 }
 
-function message(error: unknown) {
-  return error instanceof ApiError
-    ? error.message
-    : 'Не удалось выполнить действие. Повторите попытку.';
-}
-
-
-// --- Company page ---------------------------------------------------------
-
-
 function CompanyPage() {
   const [company, setCompany] = useState<CompanyResponse | null>(null);
-  const [form, setForm] = useState<CompanyForm>(EMPTY_FORM);
+  const [form, setForm] = useState<CompanyForm>(EMPTY_COMPANY_FORM);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -76,273 +75,173 @@ function CompanyPage() {
       try {
         const data = await api<CompanyResponse>('/company');
         setCompany(data);
-        setForm(toForm(data));
+        setForm(toCompanyForm(data));
       } catch (reason) {
-        if (reason instanceof ApiError && reason.status === 404) {
-          setCompany(null);
-        } else {
-          setError(message(reason));
-        }
-      } finally {
-        setLoading(false);
-      }
+        if (reason instanceof ApiError && reason.status === 404) setCompany(null);
+        else setError(message(reason));
+      } finally { setLoading(false); }
     })();
   }, []);
 
-  const update = useCallback(
-    (key: keyof CompanyForm) => (value: string) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-    },
-    []
-  );
+  const update = <K extends keyof CompanyForm>(key: K, value: CompanyForm[K]) =>
+    setForm((old) => ({ ...old, [key]: value }));
 
-  async function handleSubmit(event: FormEvent) {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    setError('');
-    setSuccess('');
+    setError(''); setSuccess('');
+    const payload = toCompanyPayload(form);
+    if (!payload.name || !payload.description || !payload.industry || !payload.city || !payload.contact_name || !payload.contact_email) {
+      setError('Заполните все обязательные поля.'); return;
+    }
     setSaving(true);
     try {
-      const payload = toPayload(form);
-      const method = company ? 'PATCH' : 'POST';
-      const data = await api<CompanyResponse>('/company', { method, body: payload });
-      setCompany(data);
-      setForm(toForm(data));
-      setSuccess(company ? 'Профиль компании обновлён' : 'Профиль компании создан');
-    } catch (reason) {
-      setError(message(reason));
-    } finally {
-      setSaving(false);
-    }
-  }
+      const data = await api<CompanyResponse>('/company', {
+        method: company ? 'PATCH' : 'POST',
+        body: JSON.stringify(payload),
+      });
+      setCompany(data); setForm(toCompanyForm(data));
+      setSuccess(company ? 'Профиль компании обновлён.' : 'Компания создана.');
+    } catch (reason) { setError(message(reason)); } finally { setSaving(false); }
+  };
 
-  if (loading) {
-    return <div className="feature">Загрузка профиля компании…</div>;
-  }
+  if (loading) return <main className="assessment-page"><p role="status">Загружаем профиль компании…</p></main>;
 
   return (
-    <div className="feature feature--matching">
-      <header>
-        <h1>{company ? 'Профиль компании' : 'Создать компанию'}</h1>
-        <p className="muted">
-          Один работодатель — одна компания. Профиль используется в приглашениях и подборке.
+    <main className="assessment-page">
+      <section className="assessment-panel">
+        <span className="eyebrow">{company ? 'ПРОФИЛЬ КОМПАНИИ' : 'ПЕРВЫЙ ШАГ'}</span>
+        <h1>{company ? company.name : 'Представьте вашу компанию'}</h1>
+        <p className="lead">
+          {company
+            ? 'Эти данные кандидат видит рядом с приглашением. Измените поля и сохраните.'
+            : 'Кандидат должен понять, кто его приглашает и чем вы занимаетесь. Поля можно изменить потом.'}
         </p>
-      </header>
-
-      {error && <Notice tone="error">{error}</Notice>}
-      {success && <Notice tone="success">{success}</Notice>}
-
-      <form onSubmit={handleSubmit} className="form">
-        <Field label="Название" required>
-          <input value={form.name} onChange={(e) => update('name')(e.target.value)} required />
-        </Field>
-        <Field label="Описание" required>
-          <textarea
-            value={form.description}
-            onChange={(e) => update('description')(e.target.value)}
-            rows={4}
-            required
-          />
-        </Field>
-        <div className="grid-2">
-          <Field label="Отрасль" required>
-            <input
-              value={form.industry}
-              onChange={(e) => update('industry')(e.target.value)}
-              required
-            />
-          </Field>
-          <Field label="Город" required>
-            <input value={form.city} onChange={(e) => update('city')(e.target.value)} required />
-          </Field>
-        </div>
-        <h2>Контактное лицо</h2>
-        <div className="grid-2">
-          <Field label="ФИО" required>
-            <input
-              value={form.contact_name}
-              onChange={(e) => update('contact_name')(e.target.value)}
-              required
-            />
-          </Field>
-          <Field label="Роль">
-            <input
-              value={form.contact_role}
-              onChange={(e) => update('contact_role')(e.target.value)}
-              placeholder="например, HR-партнёр"
-            />
-          </Field>
-        </div>
-        <Field label="Email" required>
-          <input
-            type="email"
-            value={form.contact_email}
-            onChange={(e) => update('contact_email')(e.target.value)}
-            required
-          />
-        </Field>
-        <div className="form-actions">
-          <button type="submit" disabled={saving}>
-            {saving ? 'Сохранение…' : company ? 'Сохранить изменения' : 'Создать компанию'}
-          </button>
-        </div>
-      </form>
-    </div>
+        <form className="assessment-form" onSubmit={submit}>
+          <Field id="name" label="Название компании" value={form.name} onChange={(e) => update('name', e.target.value)} maxLength={120} placeholder="OrderFlow" required />
+          <label className="field" htmlFor="description"><span>Описание</span>
+            <textarea id="description" value={form.description} onChange={(e) => update('description', e.target.value)} maxLength={2000} rows={4} placeholder="Чем занимается компания, какой фронт работ." required />
+          </label>
+          <Field id="industry" label="Отрасль" value={form.industry} onChange={(e) => update('industry', e.target.value)} maxLength={40} placeholder="fintech, it-services, analytics…" required />
+          <Field id="city" label="Город" value={form.city} onChange={(e) => update('city', e.target.value)} maxLength={80} placeholder="Москва" required />
+          <Field id="contact_name" label="Контактное лицо" value={form.contact_name} onChange={(e) => update('contact_name', e.target.value)} maxLength={120} placeholder="Анна Соколова" required />
+          <Field id="contact_role" label="Роль контактного лица" value={form.contact_role} onChange={(e) => update('contact_role', e.target.value)} maxLength={80} placeholder="HR, тимлид (необязательно)" />
+          <Field id="contact_email" label="Email для связи" type="email" value={form.contact_email} onChange={(e) => update('contact_email', e.target.value)} maxLength={254} placeholder="hr@orderflow.com" required />
+          {error && <Notice error>{error}</Notice>}
+          {success && <Notice>{success}</Notice>}
+          <button className="button primary" disabled={saving}>{saving ? 'Сохраняем…' : company ? 'Сохранить изменения' : 'Создать компанию'}</button>
+          {company && <p className="hint" style={{ marginTop: 24 }}>Готово? <Link to="/employer/candidates">Перейти к кандидатам →</Link></p>}
+        </form>
+      </section>
+    </main>
   );
 }
 
 
-// --- Candidates page ------------------------------------------------------
+// --- Candidates ------------------------------------------------------------
 
+
+interface VerifiedCategory {
+  specialization: string;
+  grade: string;
+  score: number;
+}
+
+interface CandidatePublic {
+  candidate_id: string;
+  display_name: string;
+  declared_stack: string[] | null;
+  roles: string[] | null;
+  experience_months: number | null;
+  hidden_fields: string[];
+  verified_category: VerifiedCategory | null;
+}
+
+interface CandidateListResponse {
+  items: CandidatePublic[];
+  total: number;
+}
 
 function CandidatesPage() {
-  const [data, setData] = useState<CandidateList | null>(null);
+  const [cards, setCards] = useState<CandidatePublic[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [specialization, setSpecialization] = useState<'' | 'backend' | 'qa'>('');
-  const [grade, setGrade] = useState<'' | 'junior' | 'middle' | 'senior'>('');
-  const [withFspOnly, setWithFspOnly] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (specialization) params.set('specialization', specialization);
-    if (grade) params.set('grade', grade);
-    if (withFspOnly) params.set('with_fsp_only', 'true');
-    const query = params.toString();
-    void (async () => {
-      try {
-        const list = await api<CandidateList>(`/employer/candidates${query ? '?' + query : ''}`);
-        setData(list);
-        setError('');
-      } catch (reason) {
-        setError(message(reason));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [specialization, grade, withFspOnly]);
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const data = await api<CandidateListResponse>('/employer/candidates');
+      setCards(data.items); setTotal(data.total);
+    } catch (reason) { setError(message(reason)); } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
 
   return (
-    <div className="feature feature--matching">
-      <header>
-        <h1>Подборка кандидатов</h1>
-        <p className="muted">
-          Формула: тест ×0.90 + ФСП ×0.10. С потребностью добавляется релевантность.
-          Подключение к реальным кандидатам из профилей блока D — следующая итерация.
-        </p>
-      </header>
+    <main className="assessment-page">
+      <section className="assessment-heading">
+        <div>
+          <span className="eyebrow">ПОДБОР СПЕЦИАЛИСТОВ</span>
+          <h1>Публичные карточки кандидатов</h1>
+          <p>
+            Показаны только кандидаты с подтверждённой категорией и явным согласием
+            на публикацию. Скрытые поля — только с согласия владельца.
+          </p>
+        </div>
+        <strong className="participant-code">{total} в банке</strong>
+      </section>
 
-      {error && <Notice tone="error">{error}</Notice>}
+      {error && <Notice error>{error}</Notice>}
+      {loading && <p role="status">Собираем подборку…</p>}
 
-      <div className="candidate-filters">
-        <fieldset>
-          <legend>Специализация</legend>
-          <label>
-            <input
-              type="radio"
-              name="specialization"
-              checked={specialization === ''}
-              onChange={() => setSpecialization('')}
-            />
-            Любая
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="specialization"
-              checked={specialization === 'backend'}
-              onChange={() => setSpecialization('backend')}
-            />
-            Backend
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="specialization"
-              checked={specialization === 'qa'}
-              onChange={() => setSpecialization('qa')}
-            />
-            QA
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Грейд</legend>
-          <label>
-            <input
-              type="radio"
-              name="grade"
-              checked={grade === ''}
-              onChange={() => setGrade('')}
-            />
-            Все
-          </label>
-          {(['junior', 'middle', 'senior'] as const).map((g) => (
-            <label key={g}>
-              <input
-                type="radio"
-                name="grade"
-                checked={grade === g}
-                onChange={() => setGrade(g)}
-              />
-              {g[0].toUpperCase() + g.slice(1)}
-            </label>
-          ))}
-        </fieldset>
-
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={withFspOnly}
-            onChange={(e) => setWithFspOnly(e.target.checked)}
-          />
-          Только с ФСП
-        </label>
-      </div>
-
-      {loading ? (
-        <p>Загрузка…</p>
-      ) : data && data.items.length ? (
-        <ul className="candidate-list">
-          {data.items.map((card: CandidateCard) => (
-            <li key={card.candidate_id} className="candidate-card">
-              <header>
-                <h2>{card.display_name}</h2>
-                <span className="muted">
-                  {card.specialization} · {card.verified_grade} ·{' '}
-                  {card.experience_years ? card.experience_years + ' лет опыта' : 'опыт не указан'}
-                </span>
-                <span className="score">{card.score.toFixed(1)}</span>
-              </header>
-              <dl className="grid-3">
-                <div>
-                  <dt>Тест</dt>
-                  <dd>{Math.round(card.components.test ?? 0)}</dd>
-                </div>
-                <div>
-                  <dt>ФСП</dt>
-                  <dd>{Math.round(card.components.fsp ?? 0)}</dd>
-                </div>
-                <div>
-                  <dt>Стек</dt>
-                  <dd>{card.declared_stack.join(', ') || '—'}</dd>
-                </div>
-              </dl>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">
-          Пока нет опубликованных кандидатов. Выдача наполнится, когда кандидаты пройдут тест
-          и подтвердят категорию.
-        </p>
+      {!loading && cards.length === 0 && !error && (
+        <Notice>
+          Пока нет опубликованных кандидатов. Выдача наполнится, когда кандидаты
+          пройдут тест и подтвердят категорию с согласием на публикацию.
+        </Notice>
       )}
-    </div>
+
+      <div className="assessment-items" style={{ gap: 14 }}>
+        {cards.map((card) => (
+          <article key={card.candidate_id} className="assessment-panel" style={{ padding: 24 }}>
+            <header style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <div style={{ flex: '1 1 220px' }}>
+                <h2 style={{ margin: 0 }}>{card.display_name}</h2>
+                <p style={{ margin: '4px 0 0', color: '#776b82', fontSize: 13 }}>
+                  {card.verified_category
+                    ? <>{card.verified_category.specialization} · {card.verified_category.grade} · подтверждён тестом ({card.verified_category.score.toFixed(0)})</>
+                    : 'Категория не подтверждена'}
+                </p>
+              </div>
+              <Link to={`/employer/candidates/${card.candidate_id}`} className="button ghost">Открыть профиль →</Link>
+            </header>
+
+            <dl className="evidence-grid" style={{ marginTop: 18, gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              <article>
+                <span>Роли</span>
+                <strong>{card.roles ? card.roles.join(', ') : '—'}</strong>
+                <p>{card.hidden_fields.includes('roles') ? 'Скрыто владельцем' : 'Из профиля'}</p>
+              </article>
+              <article>
+                <span>Стек</span>
+                <strong style={{ fontSize: 14, lineHeight: 1.4 }}>{card.declared_stack ? card.declared_stack.slice(0, 5).join(', ') : '—'}</strong>
+                <p>{card.hidden_fields.includes('declared_stack') ? 'Скрыто владельцем' : 'Заявлен, не подтверждён тестом'}</p>
+              </article>
+              <article>
+                <span>Опыт</span>
+                <strong>{card.experience_months != null ? `${Math.floor(card.experience_months / 12)} лет ${card.experience_months % 12} мес.` : '—'}</strong>
+                <p>{card.hidden_fields.includes('experience_months') ? 'Скрыто владельцем' : 'Заявленный стаж'}</p>
+              </article>
+            </dl>
+          </article>
+        ))}
+      </div>
+    </main>
   );
 }
 
 
-// --- Feature module manifest ---------------------------------------------
+// --- Module manifest -------------------------------------------------------
 
 
 export const matching: FeatureModule = {

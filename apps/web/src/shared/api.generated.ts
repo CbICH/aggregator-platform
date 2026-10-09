@@ -437,32 +437,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get My Company
-         * @description Прочитать профиль своей компании.
-         *
-         *     Возвращает 404 COMPANY_NOT_FOUND, если компания ещё не создана.
-         */
+        /** Get My Company */
         get: operations["get_my_company_api_v1_company_get"];
         put?: never;
         /**
          * Create Company
          * @description Создать компанию для текущего работодателя.
-         *
-         *     Возвращает 409 COMPANY_EXISTS, если у работодателя уже есть компания.
-         *     После успешного создания company_id записывается в users.company_id, чтобы
-         *     ActorContext в следующих запросах содержал связь.
          */
         post: operations["create_company_api_v1_company_post"];
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update My Company
-         * @description Частично обновить свою компанию.
-         *
-         *     Отправленные поля применяются; пропущенные остаются как были.
-         */
+        /** Update My Company */
         patch: operations["update_my_company_api_v1_company_patch"];
         trace?: never;
     };
@@ -870,52 +856,6 @@ export interface components {
              */
             target_grade: "junior" | "middle" | "senior";
         };
-        /**
-         * CandidateCard
-         * @description Публичная карточка кандидата в выдаче работодателю.
-         */
-        CandidateCard: {
-            /**
-             * Candidate Id
-             * Format: uuid
-             */
-            candidate_id: string;
-            /** Display Name */
-            display_name: string;
-            /**
-             * Specialization
-             * @enum {string}
-             */
-            specialization: "backend" | "qa";
-            /**
-             * Verified Grade
-             * @enum {string}
-             */
-            verified_grade: "junior" | "middle" | "senior";
-            /** Category Code */
-            category_code: string;
-            /** Experience Years */
-            experience_years: number;
-            /** Work Format */
-            work_format: string;
-            /** Declared Stack */
-            declared_stack: string[];
-            /** Score */
-            score: number;
-            /** Components */
-            components: {
-                [key: string]: number;
-            };
-            /** Skills */
-            skills: components["schemas"]["SkillOnCard"][];
-            /**
-             * Fsp Status
-             * @enum {string}
-             */
-            fsp_status: "not_linked" | "linked_empty" | "linked_with_data" | "unavailable";
-            /** Reasons */
-            reasons: components["schemas"]["ReasonCard"][];
-        };
         /** CandidateContacts */
         CandidateContacts: {
             /**
@@ -935,11 +875,14 @@ export interface components {
         };
         /**
          * CandidateList
-         * @description Отсортированный список кандидатов для работодателя.
+         * @description Отсортированный список публичных карточек кандидатов.
+         *
+         *     Карточка — `CandidatePublic` из общих контрактов (`app.contracts.schemas`),
+         *     собирается блоком D с учётом настроек приватности каждого кандидата.
          */
         CandidateList: {
             /** Items */
-            items: components["schemas"]["CandidateCard"][];
+            items: components["schemas"]["CandidatePublic"][];
             /** Total */
             total: number;
         };
@@ -1617,22 +1560,6 @@ export interface components {
             /** Limit */
             limit: number;
         };
-        /**
-         * ReasonCard
-         * @description Одна строка «почему подходит» в карточке кандидата.
-         */
-        ReasonCard: {
-            /** Code */
-            code: string;
-            /** Label */
-            label?: string | null;
-            /** Skill Id */
-            skill_id?: string | null;
-            /** Score */
-            score?: number | null;
-            /** Date */
-            date?: string | null;
-        };
         /** RegisterRequest */
         RegisterRequest: {
             /**
@@ -1700,16 +1627,6 @@ export interface components {
              * @constant
              */
             source: "assessment";
-        };
-        /**
-         * SkillOnCard
-         * @description Навык с баллом внутри карточки кандидата.
-         */
-        SkillOnCard: {
-            /** Id */
-            id: string;
-            /** Score */
-            score: number;
         };
         /** SurveyCreate */
         SurveyCreate: {
