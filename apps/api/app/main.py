@@ -19,6 +19,7 @@ from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
 from app.modules.fsp.provider import DemoFspProvider
 from app.modules.matching.read import SqlAlchemyCompanyRead
+from app.modules.profiles.dependencies import configure_d
 
 
 class Health(DTO):
@@ -51,6 +52,7 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.state.assessment_read = SqlAlchemyAssessmentRead(app.state.session_factory)
     app.state.assessment_read_factory = SqlAlchemyAssessmentRead
     app.state.company_read_factory = SqlAlchemyCompanyRead
+    configure_d(app)
     app.state.fsp_provider = DemoFspProvider()
     app.state.mailer = mailer or SmtpMailer(cfg)
     install_errors(app)
@@ -101,9 +103,6 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(catalogs_router, prefix="/api/v1")
     register_modules(app)
-    from app.modules.profiles.dependencies import configure_d
-
-    configure_d(app)
     return app
 
 

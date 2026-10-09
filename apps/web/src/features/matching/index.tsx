@@ -132,7 +132,7 @@ function CompanyPage() {
         </p>
         <form className="assessment-form" onSubmit={submit}>
           <Field id="name" label="Название компании" value={form.name} onChange={(e) => update('name', e.target.value)} maxLength={120} placeholder="OrderFlow" required />
-          <label className="field"><span>Описание</span>
+          <label className="field" htmlFor="description"><span>Описание</span>
             <textarea id="description" value={form.description} onChange={(e) => update('description', e.target.value)} maxLength={2000} rows={4} placeholder="Чем занимается компания, какой фронт работ." required />
           </label>
           <Field id="industry" label="Отрасль" value={form.industry} onChange={(e) => update('industry', e.target.value)} maxLength={40} placeholder="fintech, it-services, analytics…" required />
