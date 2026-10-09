@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../shared/api';
-import type { components } from '../../shared/api.generated';
 import type { FeatureModule } from '../../shared/module';
 import { Field, Notice } from '../../shared/ui';
-
-type CandidatePublic = components['schemas']['CandidatePublic'];
-type PublicProfileList = components['schemas']['PublicProfileList'];
 
 // --- Shared helpers --------------------------------------------------------
 
@@ -141,104 +137,18 @@ function CompanyPage() {
 }
 
 
-// --- Candidates ------------------------------------------------------------
-
-
-
-function CandidatesPage() {
-  const [cards, setCards] = useState<CandidatePublic[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
-    try {
-      const data = await api<PublicProfileList>('/employer/candidates');
-      setCards(data.items);
-    } catch (reason) { setError(message(reason)); } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
-
-  return (
-    <main className="assessment-page">
-      <section className="assessment-heading">
-        <div>
-          <span className="eyebrow">ПОДБОР СПЕЦИАЛИСТОВ</span>
-          <h1>Публичные карточки кандидатов</h1>
-          <p>
-            Показаны только кандидаты с подтверждённой категорией и явным согласием
-            на публикацию. Скрытые поля — только с согласия владельца.
-          </p>
-        </div>
-        <strong className="participant-code">{cards.length} в банке</strong>
-      </section>
-
-      {error && <Notice error>{error}</Notice>}
-      {loading && <p role="status">Собираем подборку…</p>}
-
-      {!loading && cards.length === 0 && !error && (
-        <Notice>
-          Пока нет опубликованных кандидатов. Выдача наполнится, когда кандидаты
-          пройдут тест и подтвердят категорию с согласием на публикацию.
-        </Notice>
-      )}
-
-      <div className="assessment-items" style={{ gap: 14 }}>
-        {cards.map((card) => (
-          <article key={card.candidate_id} className="assessment-panel" style={{ padding: 24 }}>
-            <header style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              <div style={{ flex: '1 1 220px' }}>
-                <h2 style={{ margin: 0 }}>{card.display_name}</h2>
-                <p style={{ margin: '4px 0 0', color: '#776b82', fontSize: 13 }}>
-                  {card.verified_category
-                    ? <>{card.verified_category.specialization} · {card.verified_category.verified_grade} · подтверждён тестом ({card.verified_category.test_score.toFixed(0)})</>
-                    : 'Категория не подтверждена'}
-                </p>
-              </div>
-              <Link to={`/employer/candidates/${card.candidate_id}`} className="button ghost">Открыть профиль →</Link>
-            </header>
-
-            {(() => {
-              const hidden = card.hidden_fields ?? [];
-              return (
-                <dl className="evidence-grid" style={{ marginTop: 18, gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                  <article>
-                    <span>Роли</span>
-                    <strong>{card.roles ? card.roles.join(', ') : '—'}</strong>
-                    <p>{hidden.includes('roles') ? 'Скрыто владельцем' : 'Из профиля'}</p>
-                  </article>
-                  <article>
-                    <span>Стек</span>
-                    <strong style={{ fontSize: 14, lineHeight: 1.4 }}>{card.declared_stack ? card.declared_stack.slice(0, 5).join(', ') : '—'}</strong>
-                    <p>{hidden.includes('declared_stack') ? 'Скрыто владельцем' : 'Заявлен, не подтверждён тестом'}</p>
-                  </article>
-                  <article>
-                    <span>Опыт</span>
-                    <strong>{card.experience_months != null ? `${Math.floor(card.experience_months / 12)} лет ${card.experience_months % 12} мес.` : '—'}</strong>
-                    <p>{hidden.includes('experience_months') ? 'Скрыто владельцем' : 'Заявленный стаж'}</p>
-                  </article>
-                </dl>
-              );
-            })()}
-          </article>
-        ))}
-      </div>
-    </main>
-  );
-}
-
-
 // --- Module manifest -------------------------------------------------------
+//
+// Страница кандидатов (/employer/candidates), её контактная подстраница
+// (/employer/candidates/:id/contacts) и приглашения живут в модуле D
+// (features/invitations). Этот модуль отвечает только за профиль компании.
 
 
 export const matching: FeatureModule = {
   routes: [
     { path: '/employer/company', element: <CompanyPage />, roles: ['employer'] },
-    { path: '/employer/candidates', element: <CandidatesPage />, roles: ['employer'] },
   ],
   navigation: [
     { to: '/employer/company', label: 'Моя компания', roles: ['employer'] },
-    { to: '/employer/candidates', label: 'Кандидаты', roles: ['employer'] },
   ],
 };
