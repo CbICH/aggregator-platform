@@ -38,14 +38,14 @@ function Workspace() {
     <p className="lead">{user?.email}</p>
     {!user?.email_verified ? <Notice>Подтвердите email, чтобы продолжить. <Link to="/check-email">Отправить письмо</Link> · <button className="inline-button" onClick={() => void refresh()}>Я подтвердил адрес</button></Notice> : <Notice>Email подтверждён. Ваш аккаунт готов к работе.</Notice>}
     <div className="module-grid">{(user?.role === 'candidate' ? [
-      ['01', 'Профиль', 'Расскажите об опыте и выберите, что увидит работодатель.'],
-      ['02', 'Подтверждение навыков', 'Пройдите тест и получите подтверждённую категорию.', '/candidate/assessment'],
-      ['03', 'Предложения', 'Сравните задачи и зарплату, затем выберите подходящую команду.'],
+      ['01', 'Профиль', 'Расскажите об опыте, настройте видимость и скачайте PDF.', '/candidate/profile', 'Заполнить профиль'],
+      ['02', 'Подтверждение навыков', 'Пройдите тест и получите подтверждённую категорию.', '/candidate/assessment', 'Пройти тест'],
+      ['03', 'Предложения', 'Сравните задачи и зарплату, затем выберите подходящую команду.', '/candidate/invitations', 'Открыть приглашения'],
     ] : [
-      ['01', 'Потребность команды', 'Опишите задачи будущего сотрудника и нужные навыки.'],
-      ['02', 'Подбор специалистов', 'Оцените подтверждённые навыки и основания рекомендации.'],
-      ['03', 'Приглашения', 'Предложите кандидату конкретную работу и зарплату.'],
-    ]).map(([number, title, text, path]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p>{path ? <Link className="button primary" to={path}>Пройти тест</Link> : <span className="coming-soon">Скоро будет доступно</span>}</section>)}</div>
+      ['01', 'Моя компания', 'Представьте компанию и укажите, как с вами связаться.', '/employer/company', 'Заполнить компанию'],
+      ['02', 'Профили специалистов', 'Откройте опубликованные профили с подтверждёнными навыками.', '/employer/candidates', 'Открыть профили'],
+      ['03', 'Приглашения', 'Предложите кандидату конкретную работу и зарплату.', '/employer/invitations', 'Открыть приглашения'],
+    ]).map(([number, title, text, path, label]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p><Link className="button primary" to={path}>{label}</Link></section>)}</div>
   </main>;
 }
 
@@ -73,4 +73,3 @@ export function App() {
     <Route path="*" element={<main className="centered"><section><h1>Страница не найдена</h1><Link to="/">На главную</Link></section></main>} />
   </Routes><footer className="footer">ФСП Сигнал <span>От подтверждённых навыков — к новой команде</span></footer></AuthProvider>;
 }
-

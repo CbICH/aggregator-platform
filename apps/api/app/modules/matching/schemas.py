@@ -6,7 +6,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, EmailStr, Field, model_validator
+from pydantic import AwareDatetime, EmailStr, Field, field_validator, model_validator
 
 from app.contracts.schemas import DTO
 
@@ -24,6 +24,11 @@ class CompanyCreate(DTO):
     contact_role: Annotated[str, Field(max_length=80)] | None = None
     contact_email: EmailStr
 
+    @field_validator("name", "description", "industry", "city", "contact_name", mode="before")
+    @classmethod
+    def trim_fields(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
 
 class CompanyUpdate(DTO):
     """Тело PATCH /company — частичное обновление, все поля опциональны."""
@@ -35,6 +40,15 @@ class CompanyUpdate(DTO):
     contact_name: Annotated[str, Field(min_length=2, max_length=120)] | None = None
     contact_role: Annotated[str, Field(max_length=80)] | None = None
     contact_email: EmailStr | None = None
+
+    @field_validator(
+        "name", "description", "industry", "city", "contact_name", "contact_email", mode="before"
+    )
+    @classmethod
+    def required_fields_cannot_be_cleared(cls, value):
+        if value is None:
+            raise ValueError("Пропустите поле вместо отправки null")
+        return value.strip() if isinstance(value, str) else value
 
 
 class CompanyResponse(DTO):

@@ -60,8 +60,15 @@ jobs:
       - run: docker compose up -d --build --wait
       - run: npm ci && npx playwright install --with-deps chromium && npm run test:e2e
         working-directory: apps/web
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/api/requirements-dev.txt
+      - run: python -m venv .venv && .venv/bin/python -m pip install -r apps/api/requirements-dev.txt
+      - run: npm run test:e2e:d
+        working-directory: apps/web
       - if: failure()
         run: docker compose logs --tail 100
       - if: always()
         run: docker compose down
-

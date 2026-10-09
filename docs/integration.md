@@ -27,7 +27,7 @@ def my_feature(
 
 Добавляйте `response_model`; сырые ORM-объекты не должны случайно сериализовать приватные поля. Для публичной карточки используйте `CandidatePublic`, для контактов — отдельный защищённый DTO. Схемы с `extra=forbid` отклоняют неизвестные поля. `Salary` запрещает дробные/отрицательные рубли, иную валюту и перевёрнутый диапазон.
 
-Модели наследуются от `app.core.db.Base`. Перед генерацией миграции зарегистрируйте импорт моделей в `migrations/env.py`; единую последовательность ревизий согласуйте с A. Текущая база — `0001_core`. Проверяйте миграцию на пустой тестовой базе и отсутствие расхождений через `alembic check`.
+Модели наследуются от `app.core.db.Base`; импорты A/B/C/D зарегистрированы в `migrations/env.py`. Истории D (`0003_d_snapshots`) и B/C (`0009_matching_companies`) соединены через `0010_merge_bcd`; единый head — `0011_assessment_survey_index`. Не переписывайте уже применённые ревизии. Проверяйте upgrade из обеих историй и пустой базы, затем `alembic check`. Подробности: [integration-bcd.md](integration-bcd.md).
 
 ## Frontend
 
@@ -72,3 +72,17 @@ CI проверяет, что экспорт не меняет закоммич�
 3. C создаёт компанию, связывает работодателя и предоставляет `CompanyRead`.
 4. D реализует приглашение, транзакцию принятия и ContactGrant.
 5. A соединяет реализации портов и проверяет полный путь. До этого готовность общей авторизации не означает готовность всего MVP.
+
+## Готовые порты D
+
+`create_app()` подключает реальные фабрики D `profile_read_factory(db)`/`contact_access_factory(db)`, B `assessment_read_factory(db)` и C `company_read_factory(db)` с Session запроса. `fsp_read_factory` ещё не реализована C. Read-порты не выполняют промежуточный commit. До категории B кандидат недоступен работодателю; до компании C отправка приглашения закрыта.
+
+`CandidatePublic.roles`, `declared_stack`, `experience_months` теперь nullable: `null` означает скрыто, `hidden_fields` перечисляет скрытые поля. Нельзя считать скрытый стаж нулевым или фильтровать по приватному значению. `verified_category` содержит текущую категорию B; ФИО, резюме и контактов в DTO нет. Публичный стек содержит только распознанные технологии. C перечитывает профиль D перед показом сохранённой подборки.
+
+`ProfileRead.list_public(actor, after, limit)` выдаёт live-проекции; `get_public` и `is_discoverable` также доступны. `ContactAccess.get(company_id, candidate_id)` возвращает контакты лишь при активном grant от принятого приглашения. Внешний endpoint дополнительно проверяет работодателя/подтверждение/компанию.
+
+`CompanyRead` расширен `owns_need(company_id, need_id)` и `owns_vacancy` для будущего P1. Безопасная ссылка из C: `/employer/invitations/new?candidate_id=<uuid>&need_id=<optional uuid>`. Компания вычисляется сервером из actor, параметры заново проверяются. FK к company/need таблицам добавляет согласованная интеграционная миграция C.
+
+Для ФСП D использует `GET /candidate/fsp`, `POST /candidate/fsp-link` с `fsp_id`, `DELETE /candidate/fsp-link` и FspRead. Подтверждение владения внешним ID делает C; детали DTO связи подтвердить при интеграции.
+
+См. [контракты D](module-D.md), [матрицу требований](requirements-D.md) и [передачу/демонстрацию](handoff-D.md).

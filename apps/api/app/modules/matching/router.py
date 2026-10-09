@@ -1,10 +1,26 @@
-"""Эндпоинты модуля matching: профиль компании, потребности, подборка кандидатов."""
+"""Эндпоинты модуля matching: профиль компании, потребности, подборка кандидатов.
 
+Company endpoints:
+  POST  /api/v1/company   — создать компанию (один раз на одного работодателя).
+  GET   /api/v1/company   — получить свою компанию.
+  PATCH /api/v1/company   — изменить поля своей компании.
+
+Needs endpoints:
+  POST  /api/v1/employer/needs                — создать потребность.
+  GET   /api/v1/employer/needs                — список потребностей компании.
+  GET   /api/v1/employer/needs/{need_id}      — одна потребность.
+
+Catalog & matching:
+  GET   /api/v1/employer/categories           — справочник категорий.
+  GET   /api/v1/employer/candidates           — подборка с объяснимым скорингом.
+"""
+
+from datetime import UTC
 from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.contracts.schemas import ActorContext, Role
@@ -50,11 +66,39 @@ def _fsp_provider(request: Request) -> FspProvider:
 FspPort = Annotated[FspProvider, Depends(_fsp_provider)]
 
 
-# --- Company ---------------------------------------------------------------
+# --- Company helpers ------------------------------------------------------
+
+
+def response(company: Company) -> CompanyResponse:
+    """Сериализация Company → CompanyResponse с нормализацией tzinfo.
+
+    SQLite возвращает naive datetime; продовский PostgreSQL — aware. API-схема
+    требует AwareDatetime, поэтому подставляем UTC, если tzinfo отсутствует.
+    """
+    data = {name: getattr(company, name) for name in CompanyResponse.model_fields}
+    for field in ("created_at", "updated_at"):
+        if data[field].tzinfo is None:
+            data[field] = data[field].replace(tzinfo=UTC)
+    return CompanyResponse.model_validate(data)
+
+
+# --- Company endpoints ----------------------------------------------------
 
 
 @router.post("/company", response_model=CompanyResponse, status_code=201)
-def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) -> Company:
+def create_company(
+    payload: CompanyCreate,
+    actor: EmployerActor,
+    db: DbSession,
+) -> CompanyResponse:
+    """Создать компанию для текущего работодателя.
+
+    Возвращает 409 COMPANY_EXISTS, если у работодателя уже есть компания.
+    После успешного создания company_id записывается в users.company_id, чтобы
+    ActorContext в следующих запросах содержал связь.
+    """
+    # Serialize creation on both SQLite and PostgreSQL; a fresh request gets company_id.
+    db.execute(update(User).where(User.id == str(actor.user_id)).values(company_id=User.company_id))
     existing = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if existing is not None:
         raise AppError(
@@ -74,7 +118,7 @@ def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) 
         contact_email=payload.contact_email,
     )
     db.add(company)
-    db.flush()
+    db.flush()  # присваивает company.id до коммита
 
     user = db.get(User, str(actor.user_id))
     if user is not None:
@@ -82,25 +126,39 @@ def create_company(payload: CompanyCreate, actor: EmployerActor, db: DbSession) 
 
     db.commit()
     db.refresh(company)
-    return company
+    return response(company)
 
 
 @router.get("/company", response_model=CompanyResponse)
-def get_my_company(actor: EmployerActor, db: DbSession) -> Company:
+def get_my_company(actor: EmployerActor, db: DbSession) -> CompanyResponse:
+    """Прочитать профиль своей компании.
+
+    Возвращает 404 COMPANY_NOT_FOUND, если компания ещё не создана.
+    """
     company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
         raise AppError(
             404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Создайте через POST /company."
         )
-    return company
+    return response(company)
 
 
 @router.patch("/company", response_model=CompanyResponse)
-def update_my_company(payload: CompanyUpdate, actor: EmployerActor, db: DbSession) -> Company:
+def update_my_company(
+    payload: CompanyUpdate,
+    actor: EmployerActor,
+    db: DbSession,
+) -> CompanyResponse:
+    """Частично обновить свою компанию.
+
+    Отправленные поля применяются; пропущенные остаются как были.
+    """
     company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
     if company is None:
         raise AppError(
-            404, "COMPANY_NOT_FOUND", "Компания ещё не создана. Сначала выполните POST /company."
+            404,
+            "COMPANY_NOT_FOUND",
+            "Компания ещё не создана. Сначала выполните POST /company.",
         )
 
     changes = payload.model_dump(exclude_unset=True)
@@ -109,7 +167,7 @@ def update_my_company(payload: CompanyUpdate, actor: EmployerActor, db: DbSessio
     company.updated_at = utcnow()
     db.commit()
     db.refresh(company)
-    return company
+    return response(company)
 
 
 # --- Helper: company id by actor -------------------------------------------
@@ -130,6 +188,12 @@ def _require_company_id(db: Session, actor: ActorContext) -> str:
 
 
 def _need_to_response(need: EmployerNeed) -> NeedResponse:
+    created_at = need.created_at
+    updated_at = need.updated_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=UTC)
+    if updated_at.tzinfo is None:
+        updated_at = updated_at.replace(tzinfo=UTC)
     return NeedResponse(
         id=UUID(need.id),
         company_id=UUID(need.company_id),
@@ -142,13 +206,17 @@ def _need_to_response(need: EmployerNeed) -> NeedResponse:
         work_format=need.work_format,
         salary_min=need.salary_min,
         salary_max=need.salary_max,
-        created_at=need.created_at,
-        updated_at=need.updated_at,
+        created_at=created_at,
+        updated_at=updated_at,
     )
 
 
 @router.post("/employer/needs", response_model=NeedResponse, status_code=201)
 def create_need(payload: NeedCreate, actor: EmployerActor, db: DbSession) -> NeedResponse:
+    """Создать потребность компании текущего работодателя.
+
+    Требует предварительно созданной компании (иначе 409 COMPANY_REQUIRED).
+    """
     company_id = _require_company_id(db, actor)
     need = EmployerNeed(
         company_id=company_id,
@@ -170,6 +238,7 @@ def create_need(payload: NeedCreate, actor: EmployerActor, db: DbSession) -> Nee
 
 @router.get("/employer/needs", response_model=NeedList)
 def list_needs(actor: EmployerActor, db: DbSession) -> NeedList:
+    """Все потребности компании текущего работодателя, по убыванию created_at."""
     company_id = _require_company_id(db, actor)
     rows = db.scalars(
         select(EmployerNeed)
@@ -181,6 +250,7 @@ def list_needs(actor: EmployerActor, db: DbSession) -> NeedList:
 
 @router.get("/employer/needs/{need_id}", response_model=NeedResponse)
 def get_need(need_id: UUID, actor: EmployerActor, db: DbSession) -> NeedResponse:
+    """Одна потребность по id. 404 для чужой или несуществующей."""
     company_id = _require_company_id(db, actor)
     need = db.get(EmployerNeed, str(need_id))
     if need is None or need.company_id != company_id:
@@ -193,6 +263,7 @@ def get_need(need_id: UUID, actor: EmployerActor, db: DbSession) -> NeedResponse
 
 @router.get("/employer/categories", response_model=CategoryList)
 def list_categories(_: EmployerActor) -> CategoryList:
+    """Шесть категорий (backend/qa × junior/middle/senior) с числом видимых кандидатов."""
     items = [CategoryCard(**row) for row in service.category_stats()]
     return CategoryList(items=items)
 
@@ -211,6 +282,12 @@ def list_candidates(
     ] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> CandidateList:
+    """Отсортированная подборка кандидатов для работодателя.
+
+    Без need_id — формула 0.90·T + 0.10·F (тест + ФСП).
+    С need_id — формула 0.65·T + 0.25·R + 0.10·F, где R — релевантность
+    проверенных навыков требуемым (с весами).
+    """
     need_payload = None
     applied_need_id: UUID | None = None
     if need_id is not None:

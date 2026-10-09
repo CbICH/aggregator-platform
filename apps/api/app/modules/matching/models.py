@@ -1,14 +1,14 @@
-"""Matching C: companies and employer needs.
+"""Matching C: companies owned by employers + employer needs.
 
-Company — профиль работодателя (один работодатель = одна компания).
-EmployerNeed — потребность компании, по которой строится подборка.
+Один работодатель владеет ровно одной компанией. При создании компании её id
+записывается в users.company_id (поле уже существует в core-миграции A),
+чтобы ActorContext.company_id был доступен в последующих запросах.
+Потребности компании (EmployerNeed) описывают, кого ищет работодатель.
 """
-
-from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base, new_id, utcnow
@@ -16,13 +16,15 @@ from app.core.db import Base, new_id, utcnow
 
 class Company(Base):
     __tablename__ = "companies"
+    __table_args__ = (
+        UniqueConstraint("owner_user_id"),
+        Index("ix_companies_owner_user_id", "owner_user_id"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     owner_user_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
-        unique=True,
-        index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -40,19 +42,13 @@ class Company(Base):
 
 
 class EmployerNeed(Base):
-    """Потребность компании: что ищет работодатель.
-
-    JSON-поля (declared_stack, grades, required_skills) хранятся как сериализованные
-    массивы: Postgres JSONB быстрый и валидируется, миграции на хакатоне — простые.
-    """
-
     __tablename__ = "employer_needs"
+    __table_args__ = (Index("ix_employer_needs_company_id", "company_id"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     company_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("companies.id", ondelete="CASCADE"),
-        index=True,
         nullable=False,
     )
     title: Mapped[str] = mapped_column(String(160), nullable=False)

@@ -15,6 +15,24 @@ from app.contracts.schemas import (
     VerifiedCategory,
 )
 from app.main import create_app
+from app.modules.invitations.schemas import (
+    EmployerInvitationContext,
+    InvitationCreate,
+    InvitationDecision,
+    InvitationHistory,
+    InvitationListResponse,
+    InvitationResponse,
+)
+from app.modules.profiles.schemas import (
+    CandidateSelf,
+    ConsentCommand,
+    ConsentReceipt,
+    PrivacyResponse,
+    PrivacyUpdate,
+    ProfilePatch,
+    ProfileProcessingPolicy,
+    PublicProfileList,
+)
 
 root = Path(__file__).resolve().parents[3]
 output = root / "contracts"
@@ -34,6 +52,20 @@ _, schema = models_json_schema(
             FspEvidence,
             Salary,
             VerifiedCategory,
+            CandidateSelf,
+            ProfilePatch,
+            ProfileProcessingPolicy,
+            PrivacyUpdate,
+            PrivacyResponse,
+            ConsentCommand,
+            ConsentReceipt,
+            PublicProfileList,
+            InvitationCreate,
+            InvitationDecision,
+            InvitationResponse,
+            InvitationListResponse,
+            InvitationHistory,
+            EmployerInvitationContext,
         )
     ],
     title="ФСП Сигнал: shared contracts v0.1",

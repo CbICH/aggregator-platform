@@ -1,4 +1,3 @@
-from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import UUID
@@ -23,8 +22,8 @@ class ActorContext(DTO):
 
 
 class Salary(DTO):
-    min: Annotated[int, Field(strict=True, gt=0)]
-    max: Annotated[int, Field(strict=True, gt=0)]
+    min: Annotated[int, Field(strict=True, gt=0, le=2147483647)]
+    max: Annotated[int, Field(strict=True, gt=0, le=2147483647)]
     currency: Literal["RUB"] = "RUB"
     period: Literal["month"] = "month"
     tax_basis: Literal["gross"] = "gross"
@@ -66,9 +65,11 @@ class VerifiedCategory(DTO):
 class CandidatePublic(DTO):
     candidate_id: UUID
     display_name: str
-    declared_stack: list[str]
-    roles: list[str] = Field(default_factory=list)
-    experience_months: int = Field(default=0, ge=0)
+    declared_stack: list[str] | None = None
+    roles: list[str] | None = None
+    experience_months: int | None = Field(default=None, ge=0)
+    hidden_fields: list[str] = Field(default_factory=list)
+    verified_category: VerifiedCategory | None = None
 
 
 class CompanySummary(DTO):
@@ -81,13 +82,14 @@ class FspEvidence(DTO):
     status: Literal["not_linked", "linked_empty", "linked_with_data", "unavailable"]
     signal: float = Field(default=0, ge=0, le=100)
     source: Literal["demo", "registry"] = "demo"
-    fetched_at: datetime | None = None
+    fetched_at: AwareDatetime | None = None
 
 
 class CandidateContacts(DTO):
     candidate_id: UUID
     email: str | None = None
     phone: str | None = None
+    contact_method: str = ""
 
 
 class InvitationStatus(StrEnum):
