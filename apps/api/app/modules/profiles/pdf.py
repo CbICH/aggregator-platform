@@ -107,6 +107,10 @@ def render_profile(profile: CandidateSelf) -> bytes:
         text(
             f"Сигнал ФСП: {profile.fsp.signal:g}/100; источник: {'демонстрационные данные' if profile.fsp.source == 'demo' else 'реестр'}"
         )
+    if profile.fsp.fsp_id:
+        text("Связанный ФСП ID: " + profile.fsp.fsp_id)
+    for achievement in profile.fsp.achievements:
+        text(f"{achievement.event}: {achievement.result}; {achievement.date or 'дата не указана'}")
     text("О себе и опыте", heading)
     # Bounded chunks let a long unbroken resume safely span pages.
     resume = profile.resume_text or "Описание пока не добавлено."

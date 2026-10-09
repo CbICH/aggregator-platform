@@ -43,8 +43,7 @@ class Company(Base):
 class EmployerNeed(Base):
     """Потребность компании: что ищет работодатель.
 
-    JSON-поля (declared_stack, grades, required_skills) хранятся как сериализованные
-    массивы: Postgres JSONB быстрый и валидируется, миграции на хакатоне — простые.
+    JSON-поля хранят массивы технологий, грейдов и проверяемых навыков.
     """
 
     __tablename__ = "employer_needs"
@@ -71,3 +70,19 @@ class EmployerNeed(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
+
+
+class SearchSnapshot(Base):
+    """Stores query and membership, never candidate resume/contact/hidden fields."""
+
+    __tablename__ = "search_snapshots"
+    __table_args__ = (Index("ix_search_snapshots_company_created", "company_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    company_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+    filters: Mapped[dict] = mapped_column(JSON, nullable=False)
+    need_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    candidate_ids: Mapped[list] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -13,6 +13,7 @@ type PublicProfile = components['schemas']['CandidatePublic'];
 type PublicList = components['schemas']['PublicProfileList'];
 type Company = components['schemas']['EmployerInvitationContext'];
 type Contacts = components['schemas']['CandidateContacts'];
+type Need = components['schemas']['NeedResponse'];
 type Privacy = components['schemas']['PrivacyResponse'];
 const statuses = { sent: 'Отправлено', viewed: 'Просмотрено', accepted: 'Принято', declined: 'Отклонено' };
 const money = (amount: number) => new Intl.NumberFormat('ru-RU').format(amount);
@@ -64,6 +65,7 @@ export function CandidateDirectory() {
   }, [navigate]);
   useEffect(() => { void load(); }, [load]);
   return <main className="workspace profile-page"><Link className="profile-back" to="/workspace">← Личный кабинет</Link><span className="eyebrow">ПРОФИЛИ</span><div className="profile-heading"><h1>Доступные кандидаты</h1><button className="button" disabled={busy} onClick={() => void load()}>Обновить</button></div>
+    <p><Link to="/employer/matching/candidates">Подобрать кандидатов по потребности</Link></p>
     <p className="lead">Опубликованные профили с подтверждённой категорией. Контакты открываются после принятия предложения.</p>
     {error && <Notice error>{error}</Notice>}{busy && <p role="status">Загружаем профили…</p>}{!busy && !error && items.length === 0 && <Notice>Пока нет опубликованных профилей с подтверждённой категорией.</Notice>}
     <div className="offers-grid">{items.map((item) => <article className="profile-section" key={item.candidate_id}><h2>{item.display_name}</h2><p>{item.verified_category?.category_code}</p>
@@ -80,6 +82,7 @@ export function InvitationForm() {
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState<PublicProfile | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
+  const [need, setNeed] = useState<Need | null>(null);
   const [error, setError] = useState('');
   const [fields, setFields] = useState<string[]>([]);
   const [busy, setBusy] = useState(true);
@@ -89,9 +92,9 @@ export function InvitationForm() {
     let active = true;
     if (!candidateId) { setError('Откройте форму из карточки кандидата.'); setBusy(false); return; }
     setBusy(true); setError('');
-    void Promise.all([api<PublicProfile>(`/employer/candidates/${encodeURIComponent(candidateId)}`), api<Company>('/employer/invitation-context')]).then(([profile, info]) => { if (active) { setCandidate(profile); setCompany(info); } }).catch((e) => { if (active) { if (e instanceof ApiError && e.status === 401) navigate('/login'); else setError(errorText(e)); } }).finally(() => { if (active) setBusy(false); });
+    void Promise.all([api<PublicProfile>(`/employer/candidates/${encodeURIComponent(candidateId)}`), api<Company>('/employer/invitation-context'), needId ? api<Need>(`/employer/needs/${encodeURIComponent(needId)}`) : Promise.resolve(null)]).then(([profile, info, savedNeed]) => { if (active) { setCandidate(profile); setCompany(info); setNeed(savedNeed); } }).catch((e) => { if (active) { if (e instanceof ApiError && e.status === 401) navigate('/login'); else setError(errorText(e)); } }).finally(() => { if (active) setBusy(false); });
     return () => { active = false; };
-  }, [candidateId, retry, navigate]);
+  }, [candidateId, needId, retry, navigate]);
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const values = new FormData(event.currentTarget);
@@ -106,11 +109,11 @@ export function InvitationForm() {
     {error && <Notice error>{error}{fields.map((field, index) => <p key={index}>{field}</p>)}{!candidate && <button className="inline-button" onClick={() => setRetry(retry + 1)}>Повторить загрузку</button>}</Notice>}
     {busy && !candidate && <p role="status">Загружаем кандидата…</p>}
     {candidate && company && <div className="profile-layout"><form className="profile-form" onSubmit={send}><fieldset className="profile-section" disabled={busy}><legend>Условия предложения</legend><p>{company.company_name} → {candidate.display_name}</p>
-      <label className="field" htmlFor="description"><span>Описание предложения</span><textarea id="description" name="description" rows={6} minLength={20} maxLength={6000} required placeholder="Задачи, команда, формат работы и условия" /></label>
-      <div className="profile-contact-grid"><Field id="salary-min" label="Зарплата от, ₽" name="salary_min" type="number" min={1} step={1} required /><Field id="salary-max" label="Зарплата до, ₽" name="salary_max" type="number" min={1} step={1} required /></div>
+      <label className="field" htmlFor="description"><span>Описание предложения</span><textarea id="description" name="description" rows={6} minLength={20} maxLength={6000} required defaultValue={need ? `${need.title}\n${need.description}\nФормат работы: ${need.work_format}` : ''} placeholder="Задачи, команда, формат работы и условия" /></label>
+      <div className="profile-contact-grid"><Field id="salary-min" label="Зарплата от, ₽" defaultValue={need?.salary_min ?? ''} name="salary_min" type="number" min={1} step={1} required /><Field id="salary-max" label="Зарплата до, ₽" defaultValue={need?.salary_max ?? ''} name="salary_max" type="number" min={1} step={1} required /></div>
       <p className="hint">Рубли в месяц до вычета налогов. Оба значения обязательны.</p>
       <Field id="company-contact" label="Связь с работодателем" name="company_contact" defaultValue={company.company_contact} minLength={3} maxLength={300} required />
-      <h2>Основания выбора</h2><div className="privacy-fields">{candidate.verified_category?.skills.map((skill) => <label key={skill.id}><input type="checkbox" name="evidence" value={skill.id} />{skill.id} · {skill.score}/100</label>)}</div>
+      <h2>Основания выбора</h2><div className="privacy-fields">{candidate.verified_category?.skills.map((skill) => <label key={skill.id}><input type="checkbox" name="evidence" defaultChecked={need?.required_skills.some((required) => required.id === skill.id) ?? false} value={skill.id} />{skill.id} · {skill.score}/100</label>)}</div>
       <button className="button primary" disabled={busy}>{busy ? 'Отправляем…' : 'Отправить приглашение'}</button></fieldset></form>
       <aside className="profile-summary"><section className="profile-section"><h2>{candidate.display_name}</h2><p>{candidate.verified_category?.category_code}</p><p>{candidate.declared_stack?.join(', ') ?? 'Стек скрыт'}</p><p className="muted">Предложение можно отправить без опубликованной вакансии. Контакты кандидата пока закрыты.</p></section></aside></div>}
   </main>;

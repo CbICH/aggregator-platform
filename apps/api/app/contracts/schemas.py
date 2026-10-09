@@ -78,11 +78,19 @@ class CompanySummary(DTO):
     contact: str
 
 
+class FspAchievementEvidence(DTO):
+    result: str
+    event: str
+    date: str | None = None
+
+
 class FspEvidence(DTO):
     status: Literal["not_linked", "linked_empty", "linked_with_data", "unavailable"]
     signal: float = Field(default=0, ge=0, le=100)
     source: Literal["demo", "registry"] = "demo"
     fetched_at: AwareDatetime | None = None
+    fsp_id: str | None = None
+    achievements: list[FspAchievementEvidence] = Field(default_factory=list)
 
 
 class CandidateContacts(DTO):

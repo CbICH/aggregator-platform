@@ -1,251 +1,307 @@
-"""Логика подборки кандидатов для работодателя.
+"""Live matching through B/D/FSP read ports, with company-owned search history."""
 
-Формула (из плана):
-  - без потребности:   score = 0.90 * T + 0.10 * F
-  - с потребностью:    score = 0.65 * T + 0.25 * R + 0.10 * F
+from datetime import UTC
+from uuid import UUID
 
-где T — балл теста (0..100), R — взвешенное соответствие проверенных навыков
-требуемым (0..100), F — сигнал ФСП (0..100, нормированный).
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-Источник ФСП абстрагирован через `app.modules.fsp.provider.FspProvider`
-(port/adapter). Сейчас это DemoFspProvider (данные из фикстур), в проде
-подменяется на HttpFspProvider — формула и сервис не меняются.
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Any, Literal
-
-from app.modules.fsp.provider import DemoFspProvider, FspProvider, FspSignal
-from app.modules.matching import fixtures
-
-# --- Веса компонент --------------------------------------------------------
+from app.contracts.ports import AssessmentRead, FspRead, ProfileRead
+from app.contracts.schemas import ActorContext, CandidatePublic, FspEvidence
+from app.core.catalogs import catalogs
+from app.core.errors import AppError
+from app.modules.matching.models import Company, EmployerNeed, SearchSnapshot
+from app.modules.matching.schemas import (
+    CandidateCard,
+    CandidateList,
+    CategoryCard,
+    CategoryList,
+    SearchFilters,
+    SearchHistory,
+    SearchResponse,
+    SearchSummary,
+)
 
 WEIGHT_TEST_NO_NEED = 0.90
 WEIGHT_FSP_NO_NEED = 0.10
-
 WEIGHT_TEST_WITH_NEED = 0.65
 WEIGHT_RELEVANCE_WITH_NEED = 0.25
 WEIGHT_FSP_WITH_NEED = 0.10
 
-# --- Нормализация результата соревнования → балл 0..100 --------------------
 
-FSP_SIGNAL_BY_RESULT: dict[str, int] = {
-    "участник": 30,
-    "финалист": 60,
-    "призовое место": 85,
-    "призёр": 85,
-    "победитель": 100,
-}
-
-# --- Фолбэк на дефолтного провайдера --------------------------------------
-# Если роутер не передал провайдер явно (например, в юнит-тесте сервиса) —
-# берём DemoFspProvider. В проде app.state.fsp_provider всегда задан.
-
-_default_fsp_provider: FspProvider | None = None
+def relevance(skills: dict[str, float], required: list[dict]) -> float:
+    total_weight = sum(skill["weight"] for skill in required)
+    return (
+        sum(skill["weight"] * skills.get(skill["id"], 0) for skill in required) / total_weight
+        if total_weight
+        else 0
+    )
 
 
-def _default_provider() -> FspProvider:
-    global _default_fsp_provider
-    if _default_fsp_provider is None:
-        _default_fsp_provider = DemoFspProvider()
-    return _default_fsp_provider
-
-
-@dataclass
-class RankedCandidate:
-    candidate: dict[str, Any]
-    score: float
-    components: dict[str, float]  # {"test", "relevance"?, "fsp"}
-    reasons: list[dict[str, Any]]
-    fsp_signal: FspSignal
-
-
-# --- Вспомогательные расчёты -----------------------------------------------
-
-
-def fsp_score(signal: FspSignal) -> float:
-    """F = нормированный балл ФСП из статуса + лучшего достижения."""
-    if signal.status != "linked_with_data":
-        return 0.0
-    best = 0
-    for a in signal.achievements:
-        value = FSP_SIGNAL_BY_RESULT.get(a.result.lower(), 0)
-        if value > best:
-            best = value
-    return float(best)
-
-
-def relevance(
-    candidate: dict[str, Any],
-    required_skills: list[dict[str, Any]],
-) -> tuple[float, dict[str, Any]]:
-    """R = sum(weight_i * confirmed_score_i) / sum(weight_i), 0..100.
-
-    Непроверенный требуемый навык даёт 0, но отдельно помечается — не как
-    «кандидат не умеет», а как «не проверено тестом».
-    """
-    if not required_skills:
-        return 0.0, {"covered": [], "not_assessed": []}
-
-    confirmed = {s["id"]: float(s["score"]) for s in candidate.get("skills", [])}
-    total_weight = sum(r["weight"] for r in required_skills)
-    if total_weight <= 0:
-        return 0.0, {"covered": [], "not_assessed": []}
-
-    weighted = 0.0
-    covered: list[dict[str, Any]] = []
-    not_assessed: list[str] = []
-    for req in required_skills:
-        weight = req["weight"]
-        if req["id"] in confirmed:
-            score = confirmed[req["id"]]
-            weighted += weight * score
-            covered.append({"id": req["id"], "score": score, "weight": weight})
-        else:
-            not_assessed.append(req["id"])
-    return weighted / total_weight, {"covered": covered, "not_assessed": not_assessed}
-
-
-def compute_reasons(
-    candidate: dict[str, Any],
-    signal: FspSignal,
-    *,
-    coverage: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
-    reasons: list[dict[str, Any]] = []
-    verified_grade = candidate.get("verified_grade")
-    if verified_grade:
-        reasons.append(
-            {"code": "GRADE_VERIFIED", "label": f"{verified_grade.title()} подтверждён тестом"}
+def score_profile(
+    profile: CandidatePublic, evidence: FspEvidence, need: dict | None
+) -> CandidateCard:
+    category = profile.verified_category
+    if category is None:
+        raise ValueError("Only verified categories can be ranked")
+    test = category.test_score
+    fsp = evidence.signal if evidence.status == "linked_with_data" else 0
+    skills = {skill.id: skill.score for skill in category.skills}
+    required = need["required_skills"] if need else []
+    reasons = [{"code": "GRADE_VERIFIED", "label": f"{category.category_code} подтверждена тестом"}]
+    if need:
+        match = relevance(skills, required)
+        score = (
+            WEIGHT_TEST_WITH_NEED * test
+            + WEIGHT_RELEVANCE_WITH_NEED * match
+            + WEIGHT_FSP_WITH_NEED * fsp
         )
-
-    if coverage:
-        for match in coverage.get("covered", []):
-            reasons.append(
-                {
-                    "code": "SKILL_MATCH",
-                    "skill_id": match["id"],
-                    "score": match["score"],
-                }
-            )
-        for skill_id in coverage.get("not_assessed", []):
-            reasons.append(
-                {
-                    "code": "SKILL_NOT_ASSESSED",
-                    "skill_id": skill_id,
-                    "label": f"{skill_id} не проверялся в тесте",
-                }
-            )
+        components = {"test": test, "relevance": match, "fsp": fsp}
+        reasons.extend(
+            {"code": "SKILL_MATCH", "skill_id": skill["id"], "score": skills[skill["id"]]}
+            if skill["id"] in skills
+            else {
+                "code": "SKILL_NOT_ASSESSED",
+                "skill_id": skill["id"],
+                "label": f"{skill['id']} не проверялся в тесте",
+            }
+            for skill in required
+        )
     else:
-        for skill in candidate.get("skills", []):
-            reasons.append({"code": "SKILL", "skill_id": skill["id"], "score": skill["score"]})
-
-    if signal.status == "linked_with_data" and signal.achievements:
-        top = max(
-            signal.achievements,
-            key=lambda a: FSP_SIGNAL_BY_RESULT.get(a.result.lower(), 0),
+        score = WEIGHT_TEST_NO_NEED * test + WEIGHT_FSP_NO_NEED * fsp
+        components = {"test": test, "fsp": fsp}
+        reasons.extend(
+            {"code": "SKILL", "skill_id": key, "score": value} for key, value in skills.items()
         )
+    if evidence.status == "linked_with_data":
         reasons.append(
             {
                 "code": "FSP_SIGNAL",
-                "label": f"{top.result.capitalize()}: {top.event}",
-                "date": top.date,
+                "label": "Достижения демонстрационного реестра учтены"
+                if evidence.source == "demo"
+                else "Достижения реестра ФСП учтены",
+                "score": fsp,
             }
         )
-    elif signal.status == "unavailable":
-        reasons.append({"code": "FSP_UNAVAILABLE", "label": "Статус ФСП временно недоступен"})
-    return reasons
-
-
-# --- Основной API сервиса --------------------------------------------------
-
-
-def rank_candidates(
-    *,
-    specialization: str | None = None,
-    grade: Literal["junior", "middle", "senior"] | None = None,
-    with_fsp_only: bool = False,
-    need: dict[str, Any] | None = None,
-    fsp_provider: FspProvider | None = None,
-) -> list[RankedCandidate]:
-    """Отсортированный список кандидатов.
-
-    `fsp_provider` — внешний источник сигнала ФСП (port/adapter).
-    Если не передан, используется DemoFspProvider как фолбэк.
-    """
-    provider = fsp_provider or _default_provider()
-    pool = fixtures.visible_candidates()
-
-    # Потребность задаёт жёсткий фильтр по специализации и грейдам.
-    if need:
-        pool = [c for c in pool if c.get("specialization") == need["specialization"]]
-        if need.get("grades"):
-            pool = [c for c in pool if c.get("verified_grade") in need["grades"]]
+    elif evidence.status == "unavailable":
+        reasons.append(
+            {"code": "FSP_UNAVAILABLE", "label": "Реестр ФСП недоступен; подбор работает по тесту"}
+        )
     else:
-        if specialization:
-            pool = [c for c in pool if c.get("specialization") == specialization]
-        if grade:
-            pool = [c for c in pool if c.get("verified_grade") == grade]
+        reasons.append(
+            {
+                "code": "FSP_NO_HISTORY",
+                "label": "Без истории ФСП; результат теста учитывается полностью",
+            }
+        )
+    return CandidateCard(
+        **profile.model_dump(),
+        specialization=category.specialization,
+        verified_grade=category.verified_grade,
+        category_code=category.category_code,
+        experience_years=profile.experience_months / 12
+        if profile.experience_months is not None
+        else None,
+        score=round(score, 1),
+        components=components,
+        skills=[skill.model_dump(include={"id", "score"}) for skill in category.skills],
+        fsp_status=evidence.status,
+        fsp_source=evidence.source,
+        fsp_achievements=evidence.achievements,
+        reasons=reasons,
+    )
 
-    required_skills = need.get("required_skills", []) if need else []
-    ranked: list[RankedCandidate] = []
 
-    for candidate in pool:
-        signal = provider.get_signal(candidate["candidate_id"])
+class MatchingService:
+    def __init__(
+        self, db: Session, profiles: ProfileRead, assessments: AssessmentRead, fsp: FspRead
+    ):
+        self.db, self.profiles, self.assessments, self.fsp = db, profiles, assessments, fsp
 
-        # Фильтр «только с ФСП» применяется после запроса в провайдер —
-        # статус знает только он, не фикстура.
-        if with_fsp_only and signal.status != "linked_with_data":
-            continue
+    def company_id(self, actor: ActorContext) -> str:
+        company = self.db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
+        if company is None or company.id != str(actor.company_id):
+            raise AppError(409, "COMPANY_REQUIRED", "Сначала заполните профиль компании")
+        return company.id
 
-        test_score = float(candidate.get("assessment", {}).get("test_score", 0))
-        fsp = fsp_score(signal)
+    def need(self, actor: ActorContext, need_id: UUID | None) -> dict | None:
+        company_id = self.company_id(actor)
+        if need_id is None:
+            return None
+        need = self.db.get(EmployerNeed, str(need_id))
+        if need is None or need.company_id != company_id:
+            raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена")
+        return {
+            "id": need.id,
+            "title": need.title,
+            "specialization": need.specialization,
+            "grades": need.grades,
+            "declared_stack": need.declared_stack,
+            "required_skills": need.required_skills,
+        }
 
-        if need and required_skills:
-            r_score, coverage = relevance(candidate, required_skills)
-            score = round(
-                WEIGHT_TEST_WITH_NEED * test_score
-                + WEIGHT_RELEVANCE_WITH_NEED * r_score
-                + WEIGHT_FSP_WITH_NEED * fsp,
-                1,
-            )
-            components = {"test": test_score, "relevance": r_score, "fsp": fsp}
-            reasons = compute_reasons(candidate, signal, coverage=coverage)
-        else:
-            score = round(WEIGHT_TEST_NO_NEED * test_score + WEIGHT_FSP_NO_NEED * fsp, 1)
-            components = {"test": test_score, "fsp": fsp}
-            reasons = compute_reasons(candidate, signal)
+    def public_profiles(self, actor: ActorContext) -> list[CandidatePublic]:
+        cursor = None
+        profiles = []
+        while True:
+            page = self.profiles.list_public(actor, after=cursor, limit=50)
+            profiles.extend(page)
+            if len(page) < 50:
+                return profiles
+            cursor = page[-1].candidate_id
 
-        ranked.append(
-            RankedCandidate(
-                candidate=candidate,
-                score=score,
-                components=components,
-                reasons=reasons,
-                fsp_signal=signal,
-            )
+    def evidence(self, candidate_id: UUID) -> FspEvidence:
+        try:
+            return self.fsp.get_evidence(candidate_id)
+        except (TimeoutError, ConnectionError):
+            return FspEvidence(status="unavailable")
+        except AppError as exc:
+            if exc.status == 503:
+                return FspEvidence(status="unavailable")
+            raise
+
+    def rank(
+        self,
+        profiles: list[CandidatePublic],
+        filters: SearchFilters,
+        need: dict | None,
+        *,
+        apply_filters: bool = True,
+    ) -> list[CandidateCard]:
+        ranked = []
+        for profile in profiles:
+            category = self.assessments.get_verified(profile.candidate_id)
+            if category is None or category.candidate_id != profile.candidate_id:
+                continue
+            profile = profile.model_copy(update={"verified_category": category})
+            if apply_filters:
+                if need and (
+                    category.specialization != need["specialization"]
+                    or category.verified_grade not in need["grades"]
+                ):
+                    continue
+                if filters.specialization and category.specialization != filters.specialization:
+                    continue
+                if filters.grade and category.verified_grade != filters.grade:
+                    continue
+                if filters.category_code and category.category_code != filters.category_code:
+                    continue
+                # Filtering hidden fields would reveal them through membership/counts.
+                stack = filters.stack or (need.get("declared_stack", []) if need else [])
+                if stack and (
+                    profile.declared_stack is None
+                    or not set(stack).issubset(set(profile.declared_stack))
+                ):
+                    continue
+            evidence = self.evidence(profile.candidate_id)
+            if apply_filters and filters.with_fsp_only and evidence.status != "linked_with_data":
+                continue
+            ranked.append(score_profile(profile, evidence, need))
+        ranked.sort(key=lambda item: (-item.score, str(item.candidate_id)))
+        return ranked
+
+    def search(
+        self, actor: ActorContext, filters: SearchFilters, *, limit: int = 20, offset: int = 0
+    ) -> CandidateList:
+        need = self.need(actor, filters.need_id)
+        ranked = self.rank(self.public_profiles(actor), filters, need)
+        return self.page(ranked, filters.need_id, limit, offset)
+
+    @staticmethod
+    def page(
+        ranked: list[CandidateCard], need_id: UUID | None, limit: int, offset: int
+    ) -> CandidateList:
+        return CandidateList(
+            items=ranked[offset : offset + limit],
+            total=len(ranked),
+            applied_need_id=need_id,
+            limit=limit,
+            next_offset=offset + limit if offset + limit < len(ranked) else None,
         )
 
-    ranked.sort(key=lambda r: (-r.score, r.candidate["candidate_id"]))
-    return ranked
+    def categories(self, actor: ActorContext) -> CategoryList:
+        self.company_id(actor)
+        counts = {}
+        for profile in self.public_profiles(actor):
+            category = profile.verified_category
+            if category:
+                counts[category.category_code] = counts.get(category.category_code, 0) + 1
+        return CategoryList(
+            items=[
+                CategoryCard(
+                    code=item.id,
+                    specialization=item.id.split(":")[0],
+                    grade=item.id.split(":")[1],
+                    active=item.active,
+                    candidate_count=counts.get(item.id, 0),
+                )
+                for item in catalogs().categories
+            ]
+        )
 
+    @staticmethod
+    def summary(snapshot: SearchSnapshot) -> SearchSummary:
+        created = snapshot.created_at
+        return SearchSummary(
+            id=snapshot.id,
+            created_at=created.replace(tzinfo=UTC) if created.tzinfo is None else created,
+            filters=snapshot.filters,
+            original_total=len(snapshot.candidate_ids),
+            need_title=snapshot.need_snapshot["title"] if snapshot.need_snapshot else None,
+        )
 
-def category_stats() -> list[dict[str, Any]]:
-    categories = fixtures.all_categories()
-    counts: dict[str, int] = {}
-    for cand in fixtures.visible_candidates():
-        code = cand.get("category_code")
-        if code:
-            counts[code] = counts.get(code, 0) + 1
-    return [
-        {
-            "code": cat["code"],
-            "specialization": cat["specialization"],
-            "grade": cat["grade"],
-            "active": cat.get("active", False),
-            "candidate_count": counts.get(cat["code"], 0),
-        }
-        for cat in categories
-    ]
+    def create_snapshot(self, actor: ActorContext, filters: SearchFilters) -> SearchResponse:
+        company_id = self.company_id(actor)
+        need = self.need(actor, filters.need_id)
+        ranked = self.rank(self.public_profiles(actor), filters, need)
+        snapshot = SearchSnapshot(
+            company_id=company_id,
+            filters=filters.model_dump(mode="json"),
+            need_snapshot=need,
+            candidate_ids=[str(item.candidate_id) for item in ranked],
+        )
+        self.db.add(snapshot)
+        self.db.flush()
+        return SearchResponse(
+            **self.summary(snapshot).model_dump(),
+            **self.page(ranked, filters.need_id, 20, 0).model_dump(),
+        )
+
+    def get_snapshot(
+        self, actor: ActorContext, snapshot_id: UUID, *, limit: int, offset: int
+    ) -> SearchResponse:
+        company_id = self.company_id(actor)
+        snapshot = self.db.scalar(
+            select(SearchSnapshot).where(
+                SearchSnapshot.id == str(snapshot_id), SearchSnapshot.company_id == company_id
+            )
+        )
+        if snapshot is None:
+            raise AppError(404, "SEARCH_NOT_FOUND", "Подборка не найдена")
+        # Re-read all public fields and B/FSP results; never replay a stale public DTO.
+        profiles = [
+            profile
+            for key in snapshot.candidate_ids
+            if (profile := self.profiles.get_public(UUID(key), actor)) is not None
+        ]
+        filters = SearchFilters.model_validate(snapshot.filters)
+        ranked = self.rank(profiles, filters, snapshot.need_snapshot, apply_filters=False)
+        return SearchResponse(
+            **self.summary(snapshot).model_dump(),
+            **self.page(ranked, filters.need_id, limit, offset).model_dump(),
+            unavailable_count=len(snapshot.candidate_ids) - len(ranked),
+        )
+
+    def history(self, actor: ActorContext, *, limit: int, offset: int) -> SearchHistory:
+        company_id = self.company_id(actor)
+        snapshots = self.db.scalars(
+            select(SearchSnapshot)
+            .where(SearchSnapshot.company_id == company_id)
+            .order_by(SearchSnapshot.created_at.desc(), SearchSnapshot.id.desc())
+            .offset(offset)
+            .limit(limit + 1)
+        ).all()
+        return SearchHistory(
+            items=[self.summary(item) for item in snapshots[:limit]],
+            next_offset=offset + limit if len(snapshots) > limit else None,
+        )

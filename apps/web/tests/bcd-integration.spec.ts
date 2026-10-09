@@ -28,14 +28,14 @@ async function registerAndLogin(page: Page, email: string, role: 'candidate' | '
   await expect(page).toHaveURL(/workspace/);
 }
 
-test('actual B assessment and C company feed D publication, invitation and contact access', async ({ browser }, testInfo) => {
+test('actual B/C/D/FSP: need, matching, history, invitation, contacts and withdrawal', async ({ browser }, testInfo) => {
   test.setTimeout(90_000);
   const candidateContext = await browser.newContext();
   const employerContext = await browser.newContext();
   const candidate = await candidateContext.newPage();
   const employer = await employerContext.newPage();
   const stamp = Date.now();
-  const email = `bcd-candidate-${stamp}@example.com`;
+  const email = `demo-fsp-winner+${stamp}@example.com`;
   const company = `Компания интеграции ${stamp}`;
   await registerAndLogin(candidate, email, 'candidate');
   await candidate.getByRole('link', { name: 'Заполнить профиль', exact: true }).click();
@@ -47,8 +47,18 @@ test('actual B assessment and C company feed D publication, invitation and conta
   await expect(candidate.getByText('Основные сведения заполнены.')).toBeVisible();
   const own = await (await candidate.request.get('/api/v1/candidate/profile')).json();
   expect(own.verified_category).toBeNull();
+  await candidate.goto('/candidate/fsp');
+  await expect(candidate.getByRole('heading', { name: 'ФСП ID не связан', exact: true })).toBeVisible();
+  await candidate.getByRole('button', { name: 'Связать профиль', exact: true }).click();
+  await expect(candidate.getByRole('heading', { name: 'Данные о достижениях получены', exact: true })).toBeVisible();
+  const linked = await (await candidate.request.get('/api/v1/candidate/fsp')).json();
+  expect(linked.status).toBe('linked_with_data');
+  expect(linked.source).toBe('demo');
+  expect(linked.signal).toBe(100);
+  await candidate.goto('/candidate/profile');
   await candidate.getByRole('link', { name: 'Настройки приватности', exact: true }).click();
   await candidate.getByRole('checkbox', { name: 'Разрешаю публикацию моего профиля работодателям' }).check();
+  await candidate.getByRole('checkbox', { name: 'Технологии', exact: true }).check();
   await candidate.getByRole('button', { name: 'Сохранить настройки', exact: true }).click();
   await expect(candidate.getByRole('heading', { name: 'Профиль пока не виден в подборках' })).toBeVisible();
 
@@ -93,11 +103,33 @@ test('actual B assessment and C company feed D publication, invitation and conta
   await expect(employer.getByRole('heading', { name: company, exact: true })).toBeVisible();
   await employer.getByRole('button', { name: 'Сохранить изменения', exact: true }).click();
   await expect(employer.getByRole('status')).toContainText('Профиль компании обновлён.');
-  await employer.getByRole('link', { name: 'Кандидаты', exact: true }).click();
+  await employer.getByRole('link', { name: 'Потребности', exact: true }).click();
+  await employer.getByRole('link', { name: '+ Новая потребность', exact: true }).click();
+  await employer.getByLabel('Заголовок потребности').fill('Разработка API ' + stamp);
+  await employer.getByLabel('Описание задач').fill('Разработка API и интеграций нашей команды продукта.');
+  await employer.getByRole('checkbox', { name: /api\.idempotency/ }).check();
+  await employer.getByLabel('Заявленный стек (через запятую)').fill('python');
+  await employer.getByLabel('Зарплата от, ₽').fill('120000');
+  await employer.getByLabel('Зарплата до, ₽').fill('160000');
+  await employer.getByRole('button', { name: 'Создать потребность и смотреть подборку' }).click();
+  await expect(employer.getByRole('heading', { name: 'Подбор кандидатов', exact: true })).toBeVisible();
+  await expect(employer).toHaveURL(/search=/);
+  const originalSearch = new URL(employer.url()).searchParams.get('search');
+  expect(originalSearch).toBeTruthy();
+  await expect(employer.getByRole('heading', { name: own.alias, exact: true })).toBeVisible();
+  await employer.getByLabel('Стек (через запятую)').fill('no-such-stack');
+  await employer.getByRole('button', { name: 'Подобрать и сохранить', exact: true }).click();
+  await expect(employer.getByText('Подходящих опубликованных профилей пока нет.', { exact: false })).toBeVisible();
+  await employer.getByLabel('Предыдущие подборки').selectOption(originalSearch!);
+  await expect(employer.getByRole('heading', { name: own.alias, exact: true })).toBeVisible();
+  await employer.screenshot({ path: testInfo.outputPath('actual-live-matching.png'), fullPage: true });
   const card = employer.getByRole('article').filter({ has: employer.getByRole('heading', { name: own.alias, exact: true }) });
   await expect(card).toContainText('backend:middle');
+  await expect(card).toContainText('Синтетический реестр ФСП');
   await expect(employer.getByText(email, { exact: true })).toHaveCount(0);
   await card.getByRole('link', { name: 'Предложить работу', exact: true }).click();
+  await expect(employer.getByLabel('Описание предложения')).toHaveValue(/Разработка API/);
+  await expect(employer.getByLabel('Зарплата от, ₽')).toHaveValue('120000');
   await employer.getByLabel('Описание предложения').fill('Разрабатывайте API и интеграции в нашей тестовой команде.');
   await employer.getByLabel('Зарплата от, ₽').fill('120000');
   await employer.getByLabel('Зарплата до, ₽').fill('160000');
@@ -124,6 +156,16 @@ test('actual B assessment and C company feed D publication, invitation and conta
   await expect(candidate.getByRole('status')).toContainText('Настройки сохранены.');
   await employer.getByRole('button', { name: 'Обновить доступ', exact: true }).click();
   await expect(employer.getByRole('alert')).toContainText('Контакты недоступны');
+  await candidate.getByRole('button', { name: 'Скрыть профиль', exact: true }).click();
+  await expect(candidate.getByRole('heading', { name: 'Профиль пока не виден в подборках' })).toBeVisible();
+  await employer.goto(`/employer/matching/candidates?search=${originalSearch}`);
+  await expect(employer.getByRole('button', { name: 'Обновить подборку' })).toBeVisible();
+  await expect(employer.getByRole('heading', { name: own.alias, exact: true })).toHaveCount(0);
+  const afterWithdrawal = await (await employer.request.get(`/api/v1/employer/searches/${originalSearch}`)).json();
+  expect(afterWithdrawal.items.some((item: {candidate_id: string}) => item.candidate_id === own.candidate_id)).toBe(false);
+  await candidate.goto('/candidate/fsp');
+  await candidate.getByRole('button', { name: 'Отключить связь', exact: true }).click();
+  await expect(candidate.getByRole('heading', { name: 'ФСП ID не связан', exact: true })).toBeVisible();
   await candidateContext.close();
   await employerContext.close();
 });

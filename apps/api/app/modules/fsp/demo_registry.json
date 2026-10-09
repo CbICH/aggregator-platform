@@ -1,0 +1,25 @@
+{
+  "source": "demo",
+  "description": "Синтетический реестр для хакатона. Эти результаты не принадлежат реальным участникам ФСП.",
+  "identities": [
+    {
+      "fsp_id": "demo-winner-001",
+      "owner_email": "demo-fsp-winner@example.com",
+      "achievements": [
+        {"result": "победитель", "event": "Демонстрационный чемпионат по программированию", "date": "2026-09-20"}
+      ]
+    },
+    {
+      "fsp_id": "demo-finalist-001",
+      "owner_email": "demo-fsp-finalist@example.com",
+      "achievements": [
+        {"result": "финалист", "event": "Демонстрационный турнир по программированию", "date": "2026-09-10"}
+      ]
+    },
+    {
+      "fsp_id": "demo-empty-001",
+      "owner_email": "demo-fsp-empty@example.com",
+      "achievements": []
+    }
+  ]
+}

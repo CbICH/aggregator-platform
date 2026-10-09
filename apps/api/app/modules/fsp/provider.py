@@ -1,80 +1,77 @@
-"""Адаптер источника данных ФСП (Федерация спортивного программирования).
+"""Synthetic registry with explicit owner checks; replace this adapter for a real IdP."""
 
-Назначение: абстрагировать получение сигнала ФСП (статус привязки + список
-достижений) от конкретного источника. Это паттерн port/adapter из плана:
-
-- `FspProvider` — порт (контракт, который использует matching-сервис);
-- `DemoFspProvider` — текущая реализация, читает из фикстур кандидатов;
-- в проде вместо DemoFspProvider подключается HttpFspProvider, который
-  ходит в API ФСП. Сигнатуры совпадают — сервис подборки не меняется.
-
-Регистрация: `app.state.fsp_provider = DemoFspProvider()` в create_app().
-Демо-роутер /employer/matching/candidates берёт его через request.app.state.
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass, field
+import json
+from pathlib import Path
 from typing import Literal, Protocol
+from uuid import UUID
 
-from app.modules.matching import fixtures
+from pydantic import Field
 
-FspStatus = Literal["not_linked", "linked_empty", "linked_with_data", "unavailable"]
+from app.contracts.schemas import DTO, FspAchievementEvidence
+from app.core.errors import AppError
+
+FSP_SIGNAL_BY_RESULT = {
+    "участник": 30,
+    "финалист": 60,
+    "призовое место": 85,
+    "призёр": 85,
+    "победитель": 100,
+}
 
 
-@dataclass(frozen=True)
-class FspAchievement:
-    """Одно подтверждённое ФСП достижение кандидата."""
+class FspIdentity(DTO):
+    fsp_id: str
+    source: Literal["demo", "registry"] = "demo"
+    achievements: list[FspAchievementEvidence] = Field(default_factory=list)
 
-    result: str
-    event: str
-    date: str | None = None
+    @property
+    def signal(self) -> float:
+        return max(
+            (FSP_SIGNAL_BY_RESULT.get(a.result.lower(), 0) for a in self.achievements), default=0
+        )
 
 
-@dataclass(frozen=True)
-class FspSignal:
-    """Нормализованный сигнал ФСП по кандидату.
+class FspRegistry(Protocol):
+    def owned_identity(self, candidate_id: UUID, verified_email: str) -> FspIdentity: ...
 
-    `status` — состояние связки с ФСП:
-      - not_linked: кандидат не привязан;
-      - linked_empty: привязан, достижений нет;
-      - linked_with_data: привязан, есть достижения;
-      - unavailable: ФСП временно недоступен (сервис-реквест упал).
+    def verify_owner(self, fsp_id: str, candidate_id: UUID, verified_email: str) -> FspIdentity: ...
+
+
+class DemoFspRegistry:
+    """Achievements are fixed server data, never values supplied by the candidate.
+
+    Three documented accounts have synthetic histories. Other verified accounts
+    own an empty demo identity. This checks a local demo association, not ownership
+    of any real participant's FSP ID.
     """
 
-    status: FspStatus
-    achievements: list[FspAchievement] = field(default_factory=list)
+    def __init__(self, *, available: bool = True):
+        self.available = available
+        self.identities = json.loads(Path(__file__).with_name("demo_registry.json").read_text())[
+            "identities"
+        ]
 
+    def owned_identity(self, candidate_id: UUID, verified_email: str) -> FspIdentity:
+        if not self.available:
+            raise AppError(503, "FSP_UNAVAILABLE", "Реестр ФСП временно недоступен")
+        local, domain = verified_email.lower().split("@", 1)
+        demo_email = (
+            f"{local.split('+', 1)[0]}@{domain}"
+            if domain == "example.com"
+            else verified_email.lower()
+        )
+        for identity in self.identities:
+            if identity["owner_email"] == demo_email:
+                fsp_id = (
+                    f"{identity['fsp_id']}-{candidate_id}" if "+" in local else identity["fsp_id"]
+                )
+                return FspIdentity(fsp_id=fsp_id, achievements=identity["achievements"])
+        return FspIdentity(fsp_id=f"demo-{candidate_id}")
 
-class FspProvider(Protocol):
-    """Порт: откуда модуль matching получает сведения ФСП.
-
-    Контракт — один метод: по id кандидата вернуть FspSignal.
-    Реализация решает, откуда брать (фикстуры, HTTP, кэш и т.п.).
-    """
-
-    def get_signal(self, candidate_id: str) -> FspSignal: ...
-
-
-class DemoFspProvider:
-    """Демо-реализация: читает ФСП из тех же фикстур кандидатов.
-
-    Используется для хакатона и локальной разработки. В проде подменяется
-    на HttpFspProvider — контракт тот же, matching-сервис не трогается.
-    """
-
-    def get_signal(self, candidate_id: str) -> FspSignal:
-        for cand in fixtures.visible_candidates():
-            if cand["candidate_id"] == candidate_id:
-                raw = cand.get("fsp") or {}
-                status: FspStatus = raw.get("status", "not_linked")
-                achievements = [
-                    FspAchievement(
-                        result=a.get("result", ""),
-                        event=a.get("event", ""),
-                        date=a.get("date"),
-                    )
-                    for a in raw.get("achievements", [])
-                ]
-                return FspSignal(status=status, achievements=achievements)
-        return FspSignal(status="not_linked")
+    def verify_owner(self, fsp_id: str, candidate_id: UUID, verified_email: str) -> FspIdentity:
+        identity = self.owned_identity(candidate_id, verified_email)
+        if identity.fsp_id != fsp_id:
+            raise AppError(
+                422, "FSP_ID_NOT_OWNED", "Не удалось подтвердить, что этот ФСП ID принадлежит вам"
+            )
+        return identity

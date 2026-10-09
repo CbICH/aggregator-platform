@@ -18,6 +18,11 @@ def test_d_openapi_requests_responses_and_export_are_current(client):
     schema = client.get("/api/openapi.json").json()
     exported = json.loads((ROOT / "contracts/openapi.json").read_text())
     operations = {
+        "/api/v1/candidate/fsp": ["get"],
+        "/api/v1/candidate/fsp-link": ["post", "delete"],
+        "/api/v1/employer/matching/candidates": ["get"],
+        "/api/v1/employer/searches": ["get", "post"],
+        "/api/v1/employer/searches/{search_id}": ["get"],
         "/api/v1/candidate/profile": ["get", "patch"],
         "/api/v1/candidate/profile-policy": ["get"],
         "/api/v1/candidate/privacy": ["get", "patch"],

@@ -10,6 +10,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import ValidationError
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
@@ -18,13 +19,10 @@ from app.core.db import get_db, utcnow
 from app.core.errors import ERROR_RESPONSES, AppError
 from app.core.models import User
 from app.core.security import require_role
-from app.modules.fsp.provider import DemoFspProvider, FspProvider
-from app.modules.matching import service
 from app.modules.matching.models import Company, EmployerNeed
 from app.modules.matching.schemas import (
-    CandidateCard,
     CandidateList,
-    CategoryCard,
+    CategoryCode,
     CategoryList,
     CompanyCreate,
     CompanyResponse,
@@ -32,10 +30,13 @@ from app.modules.matching.schemas import (
     NeedCreate,
     NeedList,
     NeedResponse,
-    ReasonCard,
     RequiredSkill,
-    SkillOnCard,
+    SearchFilters,
+    SearchHistory,
+    SearchResponse,
 )
+from app.modules.matching.service import MatchingService
+from app.modules.profiles.dependencies import port
 
 router = APIRouter(tags=["Matching"], responses=ERROR_RESPONSES)
 
@@ -136,17 +137,16 @@ def update_my_company(
     return response(company)
 
 
-def _fsp_provider(request: Request) -> FspProvider:
-    """Берёт провайдер ФСП из app.state (регистрируется в create_app),
-    иначе — локальный DemoFspProvider как фолбэк для тестов.
-    """
-    provider = getattr(request.app.state, "fsp_provider", None)
-    if provider is None:
-        provider = DemoFspProvider()
-    return provider
+def matching_service(request: Request, db: DbSession) -> MatchingService:
+    return MatchingService(
+        db,
+        port(request.app, "profile_read", db),
+        port(request.app, "assessment_read", db),
+        port(request.app, "fsp_read", db),
+    )
 
 
-FspPort = Annotated[FspProvider, Depends(_fsp_provider)]
+Service = Annotated[MatchingService, Depends(matching_service)]
 
 
 # --- Helper: company id by actor -------------------------------------------
@@ -229,74 +229,64 @@ def get_need(need_id: UUID, actor: EmployerActor, db: DbSession) -> NeedResponse
     return _need_to_response(need)
 
 
-# --- Catalog & candidates --------------------------------------------------
+# --- Live matching and company search history -------------------------------
 
 
 @router.get("/employer/categories", response_model=CategoryList)
-def list_categories(_: EmployerActor) -> CategoryList:
-    items = [CategoryCard(**row) for row in service.category_stats()]
-    return CategoryList(items=items)
+def list_categories(actor: EmployerActor, service: Service) -> CategoryList:
+    return service.categories(actor)
 
 
-@router.get(
-    "/employer/matching/candidates",
-    response_model=CandidateList,
-    summary="Демонстрационная подборка C из синтетических фикстур",
-)
+@router.get("/employer/matching/candidates", response_model=CandidateList)
 def list_candidates(
     actor: EmployerActor,
-    db: DbSession,
-    fsp: FspPort,
+    service: Service,
     specialization: Annotated[Literal["backend", "qa"] | None, Query()] = None,
     grade: Annotated[Literal["junior", "middle", "senior"] | None, Query()] = None,
+    category_code: Annotated[CategoryCode | None, Query()] = None,
+    stack: Annotated[list[str] | None, Query(max_length=20)] = None,
     with_fsp_only: Annotated[bool, Query()] = False,
-    need_id: Annotated[
-        UUID | None,
-        Query(description="Если указано — рейтинг рассчитывается по формуле с R."),
-    ] = None,
+    need_id: Annotated[UUID | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
 ) -> CandidateList:
-    need_payload = None
-    applied_need_id: UUID | None = None
-    if need_id is not None:
-        company_id = _require_company_id(db, actor)
-        need = db.get(EmployerNeed, str(need_id))
-        if need is None or need.company_id != company_id:
-            raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена.")
-        need_payload = {
-            "specialization": need.specialization,
-            "grades": list(need.grades),
-            "required_skills": list(need.required_skills),
-        }
-        applied_need_id = UUID(need.id)
-
-    ranked = service.rank_candidates(
-        specialization=specialization,
-        grade=grade,
-        with_fsp_only=with_fsp_only,
-        need=need_payload,
-        fsp_provider=fsp,
-    )
-
-    cards: list[CandidateCard] = []
-    for item in ranked[:limit]:
-        c = item.candidate
-        cards.append(
-            CandidateCard(
-                candidate_id=UUID(c["candidate_id"]),
-                display_name=c["display_name"],
-                specialization=c["specialization"],
-                verified_grade=c["verified_grade"],
-                category_code=c["category_code"],
-                experience_years=c.get("experience_years", 0),
-                work_format=c.get("work_format", ""),
-                declared_stack=c.get("declared_stack", []),
-                score=item.score,
-                components=item.components,
-                skills=[SkillOnCard(id=s["id"], score=s["score"]) for s in c.get("skills", [])],
-                fsp_status=item.fsp_signal.status,
-                reasons=[ReasonCard(**r) for r in item.reasons],
-            )
+    try:
+        filters = SearchFilters(
+            need_id=need_id,
+            specialization=specialization,
+            grade=grade,
+            category_code=category_code,
+            stack=stack or [],
+            with_fsp_only=with_fsp_only,
         )
+    except ValidationError:
+        raise AppError(422, "INVALID_SEARCH_FILTERS", "Проверьте фильтры поиска") from None
+    return service.search(actor, filters, limit=limit, offset=offset)
 
-    return CandidateList(items=cards, total=len(ranked), applied_need_id=applied_need_id)
+
+@router.post("/employer/searches", response_model=SearchResponse, status_code=201)
+def create_search(payload: SearchFilters, actor: EmployerActor, db: DbSession, service: Service):
+    result = service.create_snapshot(actor, payload)
+    db.commit()
+    return result
+
+
+@router.get("/employer/searches", response_model=SearchHistory)
+def search_history(
+    actor: EmployerActor,
+    service: Service,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
+):
+    return service.history(actor, limit=limit, offset=offset)
+
+
+@router.get("/employer/searches/{search_id}", response_model=SearchResponse)
+def get_search(
+    search_id: UUID,
+    actor: EmployerActor,
+    service: Service,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
+):
+    return service.get_snapshot(actor, search_id, limit=limit, offset=offset)

@@ -43,7 +43,7 @@ function Workspace() {
       ['03', 'Предложения', 'Сравните задачи и зарплату, затем выберите подходящую команду.', '/candidate/invitations', 'Открыть приглашения'],
     ] : [
       ['01', 'Моя компания', 'Представьте компанию и укажите, как с вами связаться.', '/employer/company', 'Заполнить компанию'],
-      ['02', 'Профили специалистов', 'Откройте опубликованные профили с подтверждёнными навыками.', '/employer/candidates', 'Открыть профили'],
+      ['02', 'Подбор по задачам', 'Опишите потребность, сравните проверенные навыки и предложите работу.', '/employer/needs', 'Описать потребность'],
       ['03', 'Приглашения', 'Предложите кандидату конкретную работу и зарплату.', '/employer/invitations', 'Открыть приглашения'],
     ]).map(([number, title, text, path, label]) => <section className="module-card" key={number}><span className="step-number">{number}</span><h2>{title}</h2><p>{text}</p><Link className="button primary" to={path}>{label}</Link></section>)}</div>
   </main>;
