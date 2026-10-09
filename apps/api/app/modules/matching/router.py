@@ -1,23 +1,20 @@
-"""Эндпоинты модуля matching: профиль компании, потребности, подборка кандидатов.
+"""Эндпоинты модуля matching: профиль компании и подборка кандидатов.
 
 Company endpoints:
   POST  /api/v1/company   — создать компанию (один раз на одного работодателя).
   GET   /api/v1/company   — получить свою компанию.
   PATCH /api/v1/company   — изменить поля своей компании.
 
-Needs endpoints:
-  POST  /api/v1/employer/needs                — создать потребность.
-  GET   /api/v1/employer/needs                — список потребностей компании.
-  GET   /api/v1/employer/needs/{need_id}      — одна потребность.
+Candidates endpoint:
+  GET   /api/v1/employer/candidates — отсортированный список кандидатов.
 
-Catalog & matching:
-  GET   /api/v1/employer/categories           — справочник категорий.
-  GET   /api/v1/employer/candidates           — подборка с объяснимым скорингом.
+Детальные эндпоинты одного кандидата и его контакты обслуживаются модулем D
+(`/employer/candidates/{candidate_id}` и `/employer/candidates/{candidate_id}/contacts`
+в `app.modules.invitations.router`), поскольку они живут в privacy/invitation-потоке.
 """
 
 from datetime import UTC
 from typing import Annotated, Literal
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select, update
@@ -30,20 +27,14 @@ from app.core.models import User
 from app.core.security import require_role
 from app.modules.fsp.provider import DemoFspProvider, FspProvider
 from app.modules.matching import service
-from app.modules.matching.models import Company, EmployerNeed
+from app.modules.matching.models import Company
 from app.modules.matching.schemas import (
     CandidateCard,
     CandidateList,
-    CategoryCard,
-    CategoryList,
     CompanyCreate,
     CompanyResponse,
     CompanyUpdate,
-    NeedCreate,
-    NeedList,
-    NeedResponse,
     ReasonCard,
-    RequiredSkill,
     SkillOnCard,
 )
 
@@ -170,102 +161,7 @@ def update_my_company(
     return response(company)
 
 
-# --- Helper: company id by actor -------------------------------------------
-
-
-def _require_company_id(db: Session, actor: ActorContext) -> str:
-    company = db.scalar(select(Company).where(Company.owner_user_id == str(actor.user_id)))
-    if company is None:
-        raise AppError(
-            409,
-            "COMPANY_REQUIRED",
-            "Сначала заполните профиль компании (POST /company), затем создавайте потребности.",
-        )
-    return company.id
-
-
-# --- Needs -----------------------------------------------------------------
-
-
-def _need_to_response(need: EmployerNeed) -> NeedResponse:
-    created_at = need.created_at
-    updated_at = need.updated_at
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=UTC)
-    if updated_at.tzinfo is None:
-        updated_at = updated_at.replace(tzinfo=UTC)
-    return NeedResponse(
-        id=UUID(need.id),
-        company_id=UUID(need.company_id),
-        title=need.title,
-        description=need.description,
-        specialization=need.specialization,
-        grades=need.grades,
-        declared_stack=need.declared_stack,
-        required_skills=[RequiredSkill(**rs) for rs in need.required_skills],
-        work_format=need.work_format,
-        salary_min=need.salary_min,
-        salary_max=need.salary_max,
-        created_at=created_at,
-        updated_at=updated_at,
-    )
-
-
-@router.post("/employer/needs", response_model=NeedResponse, status_code=201)
-def create_need(payload: NeedCreate, actor: EmployerActor, db: DbSession) -> NeedResponse:
-    """Создать потребность компании текущего работодателя.
-
-    Требует предварительно созданной компании (иначе 409 COMPANY_REQUIRED).
-    """
-    company_id = _require_company_id(db, actor)
-    need = EmployerNeed(
-        company_id=company_id,
-        title=payload.title,
-        description=payload.description,
-        specialization=payload.specialization,
-        grades=list(payload.grades),
-        declared_stack=list(payload.declared_stack),
-        required_skills=[rs.model_dump() for rs in payload.required_skills],
-        work_format=payload.work_format,
-        salary_min=payload.salary_min,
-        salary_max=payload.salary_max,
-    )
-    db.add(need)
-    db.commit()
-    db.refresh(need)
-    return _need_to_response(need)
-
-
-@router.get("/employer/needs", response_model=NeedList)
-def list_needs(actor: EmployerActor, db: DbSession) -> NeedList:
-    """Все потребности компании текущего работодателя, по убыванию created_at."""
-    company_id = _require_company_id(db, actor)
-    rows = db.scalars(
-        select(EmployerNeed)
-        .where(EmployerNeed.company_id == company_id)
-        .order_by(EmployerNeed.created_at.desc())
-    ).all()
-    return NeedList(items=[_need_to_response(n) for n in rows])
-
-
-@router.get("/employer/needs/{need_id}", response_model=NeedResponse)
-def get_need(need_id: UUID, actor: EmployerActor, db: DbSession) -> NeedResponse:
-    """Одна потребность по id. 404 для чужой или несуществующей."""
-    company_id = _require_company_id(db, actor)
-    need = db.get(EmployerNeed, str(need_id))
-    if need is None or need.company_id != company_id:
-        raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена.")
-    return _need_to_response(need)
-
-
-# --- Catalog & candidates --------------------------------------------------
-
-
-@router.get("/employer/categories", response_model=CategoryList)
-def list_categories(_: EmployerActor) -> CategoryList:
-    """Шесть категорий (backend/qa × junior/middle/senior) с числом видимых кандидатов."""
-    items = [CategoryCard(**row) for row in service.category_stats()]
-    return CategoryList(items=items)
+# --- Candidates list ------------------------------------------------------
 
 
 @router.get("/employer/candidates", response_model=CandidateList)
@@ -276,46 +172,29 @@ def list_candidates(
     specialization: Annotated[Literal["backend", "qa"] | None, Query()] = None,
     grade: Annotated[Literal["junior", "middle", "senior"] | None, Query()] = None,
     with_fsp_only: Annotated[bool, Query()] = False,
-    need_id: Annotated[
-        UUID | None,
-        Query(description="Если указано — рейтинг рассчитывается по формуле с R."),
-    ] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> CandidateList:
-    """Отсортированная подборка кандидатов для работодателя.
+    """Отсортированная подборка опубликованных кандидатов.
 
-    Без need_id — формула 0.90·T + 0.10·F (тест + ФСП).
-    С need_id — формула 0.65·T + 0.25·R + 0.10·F, где R — релевантность
-    проверенных навыков требуемым (с весами).
+    Подключение реального источника кандидатов (профили блока D с
+    publication_enabled && discoverable && verified_category) — следующая
+    итерация. Пока сервис возвращает пустой список; эндпоинт присутствует,
+    чтобы фронт и e2e-сценарии видели корректный контракт.
     """
-    need_payload = None
-    applied_need_id: UUID | None = None
-    if need_id is not None:
-        company_id = _require_company_id(db, actor)
-        need = db.get(EmployerNeed, str(need_id))
-        if need is None or need.company_id != company_id:
-            raise AppError(404, "NEED_NOT_FOUND", "Потребность не найдена.")
-        need_payload = {
-            "specialization": need.specialization,
-            "grades": list(need.grades),
-            "required_skills": list(need.required_skills),
-        }
-        applied_need_id = UUID(need.id)
-
+    _ = (actor, db, limit)
     ranked = service.rank_candidates(
         specialization=specialization,
         grade=grade,
         with_fsp_only=with_fsp_only,
-        need=need_payload,
         fsp_provider=fsp,
     )
 
     cards: list[CandidateCard] = []
-    for item in ranked[:limit]:
+    for item in ranked:
         c = item.candidate
         cards.append(
             CandidateCard(
-                candidate_id=UUID(c["candidate_id"]),
+                candidate_id=c["candidate_id"],
                 display_name=c["display_name"],
                 specialization=c["specialization"],
                 verified_grade=c["verified_grade"],
@@ -331,4 +210,4 @@ def list_candidates(
             )
         )
 
-    return CandidateList(items=cards, total=len(ranked), applied_need_id=applied_need_id)
+    return CandidateList(items=cards, total=len(cards))
