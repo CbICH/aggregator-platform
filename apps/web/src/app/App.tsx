@@ -22,10 +22,25 @@ function Guard({ children, roles }: { children: ReactNode; roles?: Role[] }) {
   return children;
 }
 
+function BrandLogo() {
+  return (
+    <span className="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="36" height="36">
+        <path d="M12 34 L24 12 L36 34 Z" stroke="#C9CFD9" strokeWidth="1.4" fill="none" />
+        <circle cx="24" cy="12" r="9" fill="none" stroke="#E8422B" strokeWidth="1" opacity="0.28" />
+        <circle cx="24" cy="12" r="13.5" fill="none" stroke="#E8422B" strokeWidth="1" opacity="0.14" />
+        <circle cx="12" cy="34" r="4" fill="#2B50FF" />
+        <circle cx="36" cy="34" r="4" fill="#2B50FF" />
+        <circle cx="24" cy="12" r="5" fill="#E8422B" />
+      </svg>
+    </span>
+  );
+}
+
 function Header() {
   const { user, logout } = useAuth();
   const [error, setError] = useState('');
-  return <><header className="topbar"><Link to={user ? '/workspace' : '/'} className="brand"><span className="brand-icon">С</span>ФСП <strong>Сигнал</strong></Link>
+  return <><header className="topbar"><Link to={user ? '/workspace' : '/'} className="brand"><BrandLogo />ФСП <strong>Сигнал</strong></Link>
     <nav aria-label="Основная навигация">{user ? <><span className="role-badge">{user.role === 'candidate' ? 'Кандидат' : 'Работодатель'}</span>
       {features.flatMap((feature) => feature.navigation).filter((item) => item.roles.includes(user.role)).map((item) => <Link key={item.to} to={item.to}>{item.label}</Link>)}
       <button className="button ghost" onClick={() => { setError(''); void logout().catch(() => setError('Не удалось выйти. Повторите попытку.')); }}>Выйти</button></> : <Link className="button ghost" to="/login">Войти</Link>}</nav>

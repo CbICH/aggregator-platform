@@ -1,10 +1,57 @@
-.offers-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 30px 0; }
-.offer-status { display: inline-block; border-radius: 20px; padding: 7px 12px; font-size: 12px; background: #f1edf6; color: #5a3374; margin-bottom: 16px; }
-.offer-status.accepted { background: #e8f4ed; color: #225e3b; }
-.offer-status.declined { background: #f8eaea; color: #8c3636; }
-.offer-salary { font-size: 20px; font-weight: 700; }
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 30px 0;
+}
+
+.offer-status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  margin-bottom: 16px;
+}
+.offer-status.accepted {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.offer-status.declined {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.offer-salary {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
 .offer-description { white-space: pre-wrap; overflow-wrap: anywhere; }
-.offer-decision { border-top: 1px solid var(--line); margin-top: 30px; padding-top: 12px; }
-.offer-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.offer-card p, .profile-section li { overflow-wrap: anywhere; }
-@media (max-width: 700px) { .offers-grid { grid-template-columns: 1fr; } .offer-salary { font-size: 18px; } }
+
+.offer-decision {
+  border-top: 1px solid var(--border);
+  margin-top: 30px;
+  padding-top: 16px;
+}
+
+.offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.offer-card p,
+.profile-section li { overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .offers-grid { grid-template-columns: 1fr; }
+  .offer-salary { font-size: 18px; }
+}
