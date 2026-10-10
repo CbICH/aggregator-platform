@@ -108,7 +108,11 @@ nav { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 
 
 /* Field validation (Ananas UX fixes) */
-.field-required { color: #b64252; margin-left: 2px; }
+.field.field-required > span:first-child::after {
+  content: ' *';
+  color: #e03131;
+  margin-left: 2px;
+}
 .field-hint { margin-top: 4px; color: #7c7385; font-size: 11px; font-weight: 400; }
 .field-error { margin-top: 4px; color: #b64252; font-size: 11px; font-weight: 500; }
 .field.field-invalid input { border-color: #e2a5b0; background: #fff7f8; }
