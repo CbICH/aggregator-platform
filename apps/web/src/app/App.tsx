@@ -9,8 +9,9 @@ import { pilot } from '../features/pilot';
 import { matching } from '../features/matching';
 import { profile } from '../features/profile';
 import { invitations } from '../features/invitations';
+import { account, PasswordResetRequestPage, PasswordResetConfirmPage } from '../features/account';
 
-const features = [assessment, pilot, matching, profile, invitations];
+const features = [assessment, pilot, matching, profile, invitations, account];
 
 function Guard({ children, roles }: { children: ReactNode; roles?: Role[] }) {
   const auth = useAuth();
@@ -67,6 +68,8 @@ export function App() {
     <Route path="/register" element={<AuthPage key="register" register />} />
     <Route path="/login" element={<AuthPage key="login" />} />
     <Route path="/check-email" element={<MailPage />} />
+    <Route path="/password-reset" element={<PasswordResetRequestPage />} />
+    <Route path="/password-reset/confirm" element={<PasswordResetConfirmPage />} />
     <Route path="/verify-email" element={<VerifyEmail />} />
     <Route path="/workspace" element={<Guard><Workspace /></Guard>} />
     {features.flatMap((feature) => feature.routes).map((route) => <Route key={route.path} path={route.path} element={<Guard roles={route.roles}>{route.element}</Guard>} />)}
