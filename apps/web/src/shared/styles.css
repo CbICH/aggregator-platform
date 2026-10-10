@@ -113,3 +113,5 @@ nav { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .field-error { margin-top: 4px; color: #b64252; font-size: 11px; font-weight: 500; }
 .field.field-invalid input { border-color: #e2a5b0; background: #fff7f8; }
 .field.field-invalid input:focus { outline-color: #b64252; }
+.consent-locked { opacity: .55; cursor: not-allowed; }
+.consent-locked input { cursor: not-allowed; }
