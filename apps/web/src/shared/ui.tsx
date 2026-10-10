@@ -12,11 +12,8 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 export function Field({ label, id, error, hint, required, ...props }: FieldProps) {
   const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
   return (
-    <label className={`field ${error ? 'field-invalid' : ''}`} htmlFor={id}>
-      <span>
-        {label}
-        {required && <span className="field-required" aria-hidden="true"> *</span>}
-      </span>
+    <label className={`field ${error ? 'field-invalid' : ''} ${required ? 'field-required' : ''}`} htmlFor={id}>
+      <span>{label}</span>
       <input
         id={id}
         required={required}
