@@ -7,7 +7,14 @@ import './profile.css';
 
 type Privacy = components['schemas']['PrivacyResponse'];
 const fields = [{ id: 'roles', label: 'Роли' }, { id: 'declared_stack', label: 'Технологии' }, { id: 'experience_months', label: 'Стаж' }];
-const reasons: Record<string, string> = { email_not_verified: 'Подтвердите email', profile_incomplete: 'Заполните основные сведения профиля', processing_consent_required: 'Примите условия обработки профиля', publication_consent_required: 'Разрешите публикацию', category_not_verified: 'Подтвердите категорию тестированием' };
+/* Ananas UX: inline blockers over publication */
+const reasons: Record<string, { text: string; href?: string; cta?: string }> = {
+  email_not_verified: { text: 'Подтвердите email', href: '/check-email', cta: 'Открыть страницу подтверждения' },
+  profile_incomplete: { text: 'Заполните основные сведения профиля', href: '/candidate/profile', cta: 'К профилю' },
+  processing_consent_required: { text: 'Примите условия обработки профиля', href: '/candidate/profile', cta: 'К профилю' },
+  publication_consent_required: { text: 'Разрешите публикацию (ниже)' },
+  category_not_verified: { text: 'Подтвердите категорию тестированием', href: '/candidate/assessment', cta: 'Пройти тест' },
+};
 
 export function PrivacyPage() {
   const navigate = useNavigate();
@@ -55,7 +62,26 @@ export function PrivacyPage() {
     {!privacy ? <section className="profile-section">{busy ? <p role="status">Загружаем настройки…</p> : <button className="button" onClick={() => void load()}>Повторить</button>}</section> : <div className="profile-layout">
       <form className="profile-form" onSubmit={save} key={privacy.version}><fieldset className="profile-section" disabled={busy || privacy.version === 0}>
         <legend>Публикация</legend><p>Работодатели увидят псевдоним и подтверждённые навыки. ФИО, свободное резюме и контакты остаются приватными.</p>
-        <label className="consent"><input type="checkbox" name="publication" defaultChecked={privacy.publication_enabled} /><span>Разрешаю публикацию моего профиля работодателям</span></label>
+                {/* Ananas UX: inline blockers; backend enforces real visibility */}
+        {(() => {
+          const pending = (privacy.blocked_reasons ?? []).filter((r) => r !== 'publication_consent_required');
+          const showHint = pending.length > 0 && !privacy.publication_enabled;
+          return <>
+            {showHint && <Notice>
+              Галку можно поставить сейчас. Профиль станет виден работодателям после:
+              <ul style={{ margin: '8px 0 4px 20px', padding: 0 }}>
+                {pending.map((reason) => {
+                  const info = reasons[reason] ?? { text: reason };
+                  return <li key={reason}>{info.text}{info.href && <> — <Link to={info.href}>{info.cta ?? 'Открыть'} →</Link></>}</li>;
+                })}
+              </ul>
+            </Notice>}
+            <label className="consent">
+              <input type="checkbox" name="publication" defaultChecked={privacy.publication_enabled} />
+              <span>Разрешаю публикацию моего профиля работодателям</span>
+            </label>
+          </>;
+        })()}
         <details className="policy"><summary>Условия публикации</summary><p>{privacy.publication_policy.text}</p></details>
         <h2>Дополнительные видимые поля</h2><div className="privacy-fields">{fields.map((field) => <label key={field.id}><input type="checkbox" name="visible_fields" value={field.id} defaultChecked={(privacy.visible_fields ?? []).includes(field.id)} />{field.label}</label>)}</div>
         <p className="hint">Скрытые поля не передаются работодателям и не участвуют в их фильтрах. В публичном стеке отображаются распознанные технологии; произвольный текст остаётся приватным.</p>
@@ -69,7 +95,10 @@ export function PrivacyPage() {
         <label className="consent"><input type="checkbox" checked={revokeProcessing} onChange={(event) => setRevokeProcessing(event.target.checked)} disabled={busy || !privacy.processing_consent_active} /><span>Хочу отозвать согласие на обработку профиля</span></label>
         <button type="button" className="button" disabled={busy || !revokeProcessing || !privacy.processing_consent_active} onClick={() => void revokeProfileProcessing()}>Отозвать согласие на обработку</button></section>
       </form><aside className="profile-summary"><section className="profile-section"><span className="eyebrow">ВИДИМОСТЬ</span><h2>{privacy.discoverable ? 'Профиль доступен работодателям' : 'Профиль пока не виден в подборках'}</h2>
-        {(privacy.blocked_reasons ?? []).length > 0 && <ul>{(privacy.blocked_reasons ?? []).map((reason) => <li key={reason}>{reasons[reason] ?? reason}</li>)}</ul>}
+        {(privacy.blocked_reasons ?? []).length > 0 && <ul>{(privacy.blocked_reasons ?? []).map((reason) => {
+          const info = reasons[reason] ?? { text: reason };
+          return <li key={reason}>{info.text}{info.href && <> — <Link to={info.href}>{info.cta ?? 'Открыть'} →</Link></>}</li>;
+        })}</ul>}
         <p className="muted">Отсутствие истории ФСП не мешает публикации.</p></section>
         <section className="profile-section"><h2>История согласий</h2>{privacy.consents.length === 0 ? <p>Согласий пока нет.</p> : privacy.consents.map((receipt, index) => <p key={index}>{receipt.consent_type === 'publication' ? 'Публикация' : receipt.consent_type === 'profile_processing' ? 'Обработка профиля' : 'Передача контактов'}: {receipt.revoked_at ? 'отозвано' : 'принято'} · {new Date(receipt.accepted_at).toLocaleDateString('ru-RU')}</p>)}</section>
       </aside></div>}

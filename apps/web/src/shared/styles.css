@@ -105,3 +105,17 @@ nav { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .history article strong { color: #31243a; }
 @media (max-width: 850px) { .auth-layout { gap: 35px; padding: 0 22px; } .auth-story h1 { font-size: 38px; } .auth-card { padding: 26px; } .module-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .topbar { min-height: 72px; padding: 15px 20px; } .brand { font-size: 18px; } nav { gap: 8px; } .auth-layout { grid-template-columns: 1fr; margin: 30px auto 50px; } .auth-story { padding: 0; } .auth-story h1 { font-size: 36px; } .auth-story h1 br { display: none; } .auth-story p, .story-path { display: none; } .auth-story .eyebrow { margin-bottom: 12px; } .workspace { padding: 40px 22px; } .workspace h1 { font-size: 29px; } .footer { flex-direction: column; gap: 8px; } .role-badge { display: none; } .assessment-page { padding: 34px 20px 54px; } .assessment-panel, .result-panel, .task-card { padding: 22px; } .assessment-panel h1, .result-panel h1, .assessment-heading h1 { font-size: 28px; } .assessment-heading { display: grid; } .timer-card { width: 100%; } .result-panel { grid-template-columns: 1fr; } .score-block { grid-column: 1; grid-row: auto; text-align: left; } .evidence-grid { grid-template-columns: 1fr; } .history article { grid-template-columns: 1fr; gap: 5px; } .assessment-actions { justify-content: stretch; } .assessment-actions .button { flex: 1; } }
+
+
+/* Field validation (Ananas UX fixes) */
+.field.field-required > span:first-child::after {
+  content: ' *';
+  color: #e03131;
+  margin-left: 2px;
+}
+.field-hint { margin-top: 4px; color: #7c7385; font-size: 11px; font-weight: 400; }
+.field-error { margin-top: 4px; color: #b64252; font-size: 11px; font-weight: 500; }
+.field.field-invalid input { border-color: #e2a5b0; background: #fff7f8; }
+.field.field-invalid input:focus { outline-color: #b64252; }
+.consent-locked { opacity: .55; cursor: not-allowed; }
+.consent-locked input { cursor: not-allowed; }

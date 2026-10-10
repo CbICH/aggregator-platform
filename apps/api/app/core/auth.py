@@ -13,7 +13,7 @@ from app.contracts.schemas import DTO, Role
 from app.core.consent import CONSENT_TEXT, CONSENT_VERSION, SqlRegistrationConsent
 from app.core.db import get_db, utcnow
 from app.core.errors import ERROR_RESPONSES, AppError
-from app.core.models import AuditEvent, EmailVerification, LoginSession, User
+from app.core.models import AuditEvent, EmailVerification, LoginSession, PasswordReset, User
 from app.core.rate_limit import auth_limits, rate_limit
 from app.core.security import (
     CSRF_COOKIE,
@@ -40,6 +40,22 @@ class EmailRequest(DTO):
 
 class Credentials(EmailRequest):
     password: str = Field(min_length=12, max_length=128)
+
+
+# Ananas UX: change password endpoint
+class ChangePasswordRequest(DTO):
+    current_password: str = Field(min_length=12, max_length=128)
+    new_password: str = Field(min_length=12, max_length=128)
+
+
+# Ananas UX: password reset flow (self-service for forgotten passwords)
+class PasswordResetRequestBody(EmailRequest):
+    pass
+
+
+class PasswordResetConfirmBody(DTO):
+    token: str = Field(min_length=32, max_length=128)
+    new_password: str = Field(min_length=12, max_length=128)
 
 
 class RegisterRequest(Credentials):
@@ -231,3 +247,103 @@ def logout(actor: Actor, request: Request, response: Response, db: DB):
             samesite="lax",
         )
     return Message(message="Вы вышли из аккаунта")
+
+
+@router.post("/auth/change-password", response_model=Message)
+def change_password(payload: ChangePasswordRequest, request: Request, actor: Actor, db: DB):
+    """Сменить пароль залогиненного пользователя.
+
+    Требует текущий пароль. Другие сессии пользователя инвалидируются
+    (кроме текущей, чтобы не разлогинивать активную вкладку).
+    """
+    auth_limits(request, "change-password", str(actor.user_id))
+    user = db.get(User, str(actor.user_id))
+    if user is None or not verify_password(user.password_hash, payload.current_password):
+        audit(db, request, "auth.password_change_failed", user.id if user else None)
+        db.commit()
+        raise AppError(401, "INVALID_CREDENTIALS", "Неверный текущий пароль")
+    if payload.new_password == payload.current_password:
+        raise AppError(422, "SAME_PASSWORD", "Новый пароль должен отличаться от текущего")
+    user.password_hash = password_hasher.hash(payload.new_password)
+    current_token = request.cookies.get(SESSION_COOKIE)
+    other_sessions_filter = LoginSession.user_id == user.id
+    if current_token:
+        other_sessions_filter = other_sessions_filter & (
+            LoginSession.token_hash != digest(current_token)
+        )
+    db.execute(delete(LoginSession).where(other_sessions_filter))
+    audit(db, request, "auth.password_changed", user.id)
+    db.commit()
+    return Message(message="Пароль изменён. Другие активные сессии завершены.")
+
+
+def send_password_reset_token(db, request, user):
+    """Create a single-use reset token and dispatch the email."""
+    raw = secrets.token_urlsafe(32)
+    db.add(
+        PasswordReset(
+            token_hash=digest(raw),
+            user_id=user.id,
+            expires_at=utcnow()
+            + timedelta(minutes=request.app.state.settings.password_reset_minutes),
+        )
+    )
+    db.commit()
+    try:
+        request.app.state.mailer.send_password_reset(user.email, raw)
+    except Exception as exc:
+        logger.warning(
+            "password_reset_delivery_failed request_id=%s type=%s",
+            request.state.request_id,
+            type(exc).__name__,
+        )
+
+
+@router.post("/auth/password-reset/request", response_model=Message, status_code=202)
+def password_reset_request(payload: PasswordResetRequestBody, request: Request, db: DB):
+    """Запросить ссылку для сброса пароля. Ответ одинаков для любого email,
+    чтобы не раскрывать, зарегистрирован адрес или нет."""
+    auth_limits(request, "password-reset", str(payload.email))
+    user = db.scalar(select(User).where(User.email == str(payload.email)))
+    if user is not None:
+        audit(db, request, "auth.password_reset_requested", user.id)
+        send_password_reset_token(db, request, user)
+    return Message(
+        message="Если адрес зарегистрирован, на него отправлена ссылка для сброса пароля"
+    )
+
+
+@router.post("/auth/password-reset/confirm", response_model=Message)
+def password_reset_confirm(payload: PasswordResetConfirmBody, request: Request, db: DB):
+    """Подтвердить сброс пароля по одноразовому токену из письма."""
+    ip = request.client.host if request.client else "unknown"
+    rate_limit(request, "password-reset-confirm:ip", ip, limit=30, seconds=60)
+    now = utcnow()
+    # Atomic consume: UPDATE ... RETURNING guards against double-use.
+    user_id = db.scalar(
+        update(PasswordReset)
+        .where(
+            PasswordReset.token_hash == digest(payload.token),
+            PasswordReset.used_at.is_(None),
+            PasswordReset.expires_at > now,
+        )
+        .values(used_at=now)
+        .returning(PasswordReset.user_id)
+    )
+    if user_id is None:
+        raise AppError(400, "RESET_INVALID", "Ссылка недействительна или уже использована")
+    user = db.get(User, user_id)
+    if user is None:
+        raise AppError(400, "RESET_INVALID", "Ссылка недействительна или уже использована")
+    user.password_hash = password_hasher.hash(payload.new_password)
+    # Invalidate every active session — password changed, old cookies must stop working.
+    db.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+    # Burn every other unused reset token for this user — password already changed.
+    db.execute(
+        update(PasswordReset)
+        .where(PasswordReset.user_id == user.id, PasswordReset.used_at.is_(None))
+        .values(used_at=now)
+    )
+    audit(db, request, "auth.password_reset", user.id)
+    db.commit()
+    return Message(message="Пароль обновлён. Войдите с новым паролем.")
