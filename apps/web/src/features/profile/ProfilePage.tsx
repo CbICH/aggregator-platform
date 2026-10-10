@@ -67,6 +67,11 @@ export function ProfilePage() {
     event.preventDefault();
     if (!profile || !policy) return;
     const values = new FormData(event.currentTarget);
+    // Ananas UX fixes applied — client-side validation перед запросом
+    if (values.getAll('roles').length === 0) {
+      setError('Выберите хотя бы одну роль, чтобы работодатели поняли, какие задачи вам подходят.');
+      return;
+    }
     setBusy(true); setError(''); setSavedMessage(''); setFields({});
     try {
       const result = await api<Profile>('/candidate/profile', {
@@ -113,26 +118,26 @@ export function ProfilePage() {
       <form className="profile-form" onSubmit={save} key={profile.version}>
         <fieldset disabled={busy} className="profile-section"><legend>Основная информация</legend>
           <p className="muted">Можно сохранить черновик и вернуться к заполнению позже.</p>
-          <Field id="full-name" label="ФИО" name="full_name" defaultValue={profile.full_name} autoComplete="name" maxLength={200} placeholder="Иван Петров" />
-          <fieldset className="profile-roles"><legend>Роли</legend><div className="profile-role-grid">
+          <Field id="full-name" label="ФИО" name="full_name" defaultValue={profile.full_name} autoComplete="name" maxLength={200} placeholder="Иван Петров" required error={fields.full_name} />
+          <fieldset className="profile-roles"><legend>Роли <span className="field-required" aria-hidden="true">*</span></legend><div className="profile-role-grid">
             {roleOptions.map((role) => <label key={role.id}><input type="checkbox" name="roles" value={role.id} defaultChecked={profile.roles.includes(role.id)} />{role.label}</label>)}
           </div></fieldset>
-          <Field id="experience" label="Стаж в месяцах" name="experience_months" type="number" min={0} max={1200} step={1} required defaultValue={profile.experience_months} />
+          <Field id="experience" label="Стаж в месяцах" name="experience_months" type="number" min={0} max={1200} step={1} required defaultValue={profile.experience_months} error={fields.experience_months} />
           <p className="hint">Если опыта пока нет, укажите 0.</p>
-          <Field id="stack" label="Технологии" name="declared_stack" defaultValue={profile.declared_stack.join(', ')} maxLength={1500} placeholder="Python, PostgreSQL, Git" />
+          <Field id="stack" label="Технологии" name="declared_stack" defaultValue={profile.declared_stack.join(', ')} maxLength={1500} placeholder="Python, PostgreSQL, Git" error={fields.declared_stack} />
           <p className="hint">Перечислите через запятую. Это ваш заявленный стек; навыки подтверждаются отдельно тестированием.</p>
-          <Field id="soft-skills" label="Софт-скиллы" name="soft_skills" defaultValue={profile.soft_skills.join(', ')} maxLength={1600} placeholder="Работа в команде, коммуникация" />
+          <Field id="soft-skills" label="Софт-скиллы" name="soft_skills" defaultValue={profile.soft_skills.join(', ')} maxLength={1600} placeholder="Работа в команде, коммуникация" error={fields.soft_skills} />
           <label className="field" htmlFor="resume"><span>О себе и опыте</span>
             <textarea id="resume" name="resume_text" rows={6} maxLength={12000} defaultValue={profile.resume_text} placeholder="Какие задачи решали, чем гордитесь и над чем хотите работать?" /></label>
         </fieldset>
         <fieldset disabled={busy} className="profile-section"><legend>Контакты</legend>
           <p className="muted">Контакты сохраняются отдельно от информации для работодателей.</p>
           <div className="profile-contact-grid">
-            <Field id="contact-email" label="Контактный email" name="contact_email" type="email" maxLength={254} autoComplete="email" defaultValue={profile.contacts.email ?? ''} />
-            <Field id="phone" label="Телефон" name="phone" type="tel" maxLength={32} autoComplete="tel" defaultValue={profile.contacts.phone ?? ''} placeholder="+7 900 000-00-00" />
+            <Field id="contact-email" label="Контактный email" name="contact_email" type="email" maxLength={254} autoComplete="email" defaultValue={profile.contacts.email ?? ''} error={fields.contact_email ?? fields['contacts.email']} />
+            <Field id="phone" label="Телефон" name="phone" type="tel" maxLength={32} autoComplete="tel" defaultValue={profile.contacts.phone ?? ''} placeholder="+7 900 000-00-00" error={fields.phone ?? fields['contacts.phone']} />
           </div>
           <p className="hint">Контактный email не меняет адрес входа в аккаунт.</p>
-          <Field id="contact-method" label="Предпочтительный способ связи" name="contact_method" maxLength={200} defaultValue={profile.contacts.contact_method} placeholder="Написать на email" />
+          <Field id="contact-method" label="Предпочтительный способ связи" name="contact_method" maxLength={200} defaultValue={profile.contacts.contact_method} placeholder="Написать на email" error={fields.contact_method ?? fields['contacts.contact_method']} />
         </fieldset>
         <section className="profile-section profile-save">
           {!profile.processing_consent_active && <>
