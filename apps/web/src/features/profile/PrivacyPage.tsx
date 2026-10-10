@@ -62,25 +62,24 @@ export function PrivacyPage() {
     {!privacy ? <section className="profile-section">{busy ? <p role="status">Загружаем настройки…</p> : <button className="button" onClick={() => void load()}>Повторить</button>}</section> : <div className="profile-layout">
       <form className="profile-form" onSubmit={save} key={privacy.version}><fieldset className="profile-section" disabled={busy || privacy.version === 0}>
         <legend>Публикация</legend><p>Работодатели увидят псевдоним и подтверждённые навыки. ФИО, свободное резюме и контакты остаются приватными.</p>
-        {/* Ananas UX: hard-disable publication without verified category */}
+                {/* Ananas UX: inline blockers; backend enforces real visibility */}
         {(() => {
-          const hardBlockers = (privacy.blocked_reasons ?? []).filter((r) => r !== 'publication_consent_required');
-          const locked = hardBlockers.length > 0 && !privacy.publication_enabled;
+          const pending = (privacy.blocked_reasons ?? []).filter((r) => r !== 'publication_consent_required');
+          const showHint = pending.length > 0 && !privacy.publication_enabled;
           return <>
-            {locked && <Notice>
-              Чтобы разрешить публикацию, выполните сначала:
+            {showHint && <Notice>
+              Галку можно поставить сейчас. Профиль станет виден работодателям после:
               <ul style={{ margin: '8px 0 4px 20px', padding: 0 }}>
-                {hardBlockers.map((reason) => {
+                {pending.map((reason) => {
                   const info = reasons[reason] ?? { text: reason };
                   return <li key={reason}>{info.text}{info.href && <> — <Link to={info.href}>{info.cta ?? 'Открыть'} →</Link></>}</li>;
                 })}
               </ul>
             </Notice>}
-            <label className={`consent ${locked ? 'consent-locked' : ''}`}>
-              <input type="checkbox" name="publication" defaultChecked={privacy.publication_enabled} disabled={locked} aria-describedby={locked ? 'publication-locked-hint' : undefined} />
+            <label className="consent">
+              <input type="checkbox" name="publication" defaultChecked={privacy.publication_enabled} />
               <span>Разрешаю публикацию моего профиля работодателям</span>
             </label>
-            {locked && <small id="publication-locked-hint" className="field-hint">Чекбокс станет доступен, когда вы закроете пункты выше.</small>}
           </>;
         })()}
         <details className="policy"><summary>Условия публикации</summary><p>{privacy.publication_policy.text}</p></details>
