@@ -77,7 +77,7 @@ def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision
         assert db.scalar(text("SELECT email FROM users")) == "migration@example.com"
         assert (
             db.scalar(text("SELECT version_num FROM alembic_version"))
-            == "0011_assessment_survey_index"
+            == "0012_password_resets"
         )
         if starting_revision == "0003_d_snapshots":
             assert (
