@@ -4,8 +4,6 @@ WORKDIR /app
 COPY apps/api/requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt && useradd --create-home --uid 10001 signal
 COPY --chown=signal:signal apps/api/ ./
-# Matching module needs demo fixtures until a real BD seed is wired up.
-COPY --chown=signal:signal fixtures/matching/ ./fixtures-matching/
 USER signal
 EXPOSE 8000
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log"]

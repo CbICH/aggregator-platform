@@ -124,8 +124,32 @@ def test_actual_b_category_c_company_d_invitation_contacts_and_revocation(app):
             assert not port.owns_need(UUID(company.json()["id"]), uuid4())
         context = employer.get("/api/v1/employer/invitation-context").json()
         assert context["company_contact"] == COMPANY["contact_email"]
+        need = employer.post(
+            "/api/v1/employer/needs",
+            headers=eh,
+            json={
+                "title": "Разработка интеграций",
+                "description": "Нужен разработчик API для команды продукта.",
+                "specialization": "backend",
+                "grades": ["middle"],
+                "required_skills": [{"id": "api.idempotency", "weight": 2}],
+                "work_format": "remote",
+                "salary_min": 120000,
+                "salary_max": 160000,
+            },
+        )
+        assert need.status_code == 201, need.text
+        need_id = need.json()["id"]
+        assert other.get(f"/api/v1/employer/needs/{need_id}").status_code == 404
+        with app.state.session_factory() as db:
+            port = app.state.company_read_factory(db)
+            assert port.owns_need(UUID(company.json()["id"]), UUID(need_id))
+            assert not port.owns_need(
+                UUID(other.get("/api/v1/company").json()["id"]), UUID(need_id)
+            )
         payload = {
             "candidate_id": actor["id"],
+            "need_id": need_id,
             "description": "Разрабатывайте API и интеграции нашей команды.",
             "salary": {"min": 120000, "max": 160000},
             "company_contact": context["company_contact"],
@@ -141,6 +165,7 @@ def test_actual_b_category_c_company_d_invitation_contacts_and_revocation(app):
         assert (
             row["company_id"] == company.json()["id"] and row["category_code"] == "backend:middle"
         )
+        assert row["need_id"] == need_id
         assert row["evidence"][0]["assessment_id"] == attempt["id"]
         contact_url = f"/api/v1/employer/candidates/{actor['id']}/contacts"
         assert employer.get(contact_url).status_code == 404

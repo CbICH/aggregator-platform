@@ -17,7 +17,8 @@ from app.core.mail import Mailer, SmtpMailer
 from app.core.models import User
 from app.modules import register_modules
 from app.modules.assessment.read import SqlAlchemyAssessmentRead
-from app.modules.fsp.provider import DemoFspProvider
+from app.modules.fsp.provider import DemoFspRegistry
+from app.modules.fsp.service import SqlAlchemyFspRead
 from app.modules.matching.read import SqlAlchemyCompanyRead
 from app.modules.profiles.dependencies import configure_d
 
@@ -50,13 +51,11 @@ def create_app(settings: Settings | None = None, *, mailer: Mailer | None = None
     app.state.session_factory = make_session_factory(engine)
     # B exposes only the read-only contract to modules C/D; neither gets its write models.
     app.state.assessment_read = SqlAlchemyAssessmentRead(app.state.session_factory)
-    # D requires factories (not instances) to build read-ports with the test session factory.
     app.state.assessment_read_factory = SqlAlchemyAssessmentRead
     app.state.company_read_factory = SqlAlchemyCompanyRead
-    # D's own factories (profile_read_factory, contact_access_factory) composed from its ports.
     configure_d(app)
-    # C's FSP port — DemoFspProvider читает фикстуры; в проде подменяется на HttpFspProvider.
-    app.state.fsp_provider = DemoFspProvider()
+    app.state.fsp_registry = DemoFspRegistry(available=cfg.fsp_registry_available)
+    app.state.fsp_read_factory = lambda db: SqlAlchemyFspRead(db, app.state.fsp_registry)
     app.state.mailer = mailer or SmtpMailer(cfg)
     install_errors(app)
 

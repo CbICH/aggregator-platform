@@ -7,7 +7,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base, new_id, utcnow
@@ -38,3 +38,51 @@ class Company(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
+
+
+class EmployerNeed(Base):
+    """Потребность компании: что ищет работодатель.
+
+    JSON-поля хранят массивы технологий, грейдов и проверяемых навыков.
+    """
+
+    __tablename__ = "employer_needs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    company_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("companies.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    specialization: Mapped[str] = mapped_column(String(16), nullable=False)
+    grades: Mapped[list] = mapped_column(JSON, nullable=False)
+    declared_stack: Mapped[list] = mapped_column(JSON, nullable=False)
+    required_skills: Mapped[list] = mapped_column(JSON, nullable=False)
+    work_format: Mapped[str] = mapped_column(String(16), nullable=False)
+    salary_min: Mapped[int | None] = mapped_column(nullable=True)
+    salary_max: Mapped[int | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False
+    )
+
+
+class SearchSnapshot(Base):
+    """Stores query and membership, never candidate resume/contact/hidden fields."""
+
+    __tablename__ = "search_snapshots"
+    __table_args__ = (Index("ix_search_snapshots_company_created", "company_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    company_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+    filters: Mapped[dict] = mapped_column(JSON, nullable=False)
+    need_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    candidate_ids: Mapped[list] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

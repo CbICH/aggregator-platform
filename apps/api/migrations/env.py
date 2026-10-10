@@ -4,6 +4,7 @@ from app.core import models  # noqa: F401
 from app.core.config import Settings
 from app.core.db import Base, make_engine
 from app.modules.assessment import models as assessment_models  # noqa: F401
+from app.modules.fsp import models as fsp_models  # noqa: F401
 from app.modules.invitations import models as invitation_models  # noqa: F401
 from app.modules.matching import models as matching_models  # noqa: F401
 from app.modules.profiles import models as profile_models  # noqa: F401

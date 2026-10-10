@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     session_hours: int = Field(default=8, ge=1, le=168)
     verification_minutes: int = Field(default=30, ge=1, le=1440)
+    fsp_registry_available: bool = True
     password_reset_minutes: int = Field(default=30, ge=1, le=1440)
 
     @model_validator(mode="after")

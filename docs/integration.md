@@ -75,7 +75,7 @@ CI проверяет, что экспорт не меняет закоммич�
 
 ## Готовые порты D
 
-`create_app()` подключает реальные фабрики D `profile_read_factory(db)`/`contact_access_factory(db)`, B `assessment_read_factory(db)` и C `company_read_factory(db)` с Session запроса. `fsp_read_factory` ещё не реализована C. Read-порты не выполняют промежуточный commit. До категории B кандидат недоступен работодателю; до компании C отправка приглашения закрыта.
+`create_app()` подключает реальные фабрики D `profile_read_factory(db)`/`contact_access_factory(db)`, B `assessment_read_factory(db)` и C `company_read_factory(db)` с Session запроса. `fsp_read_factory(db)` подключена через `SqlAlchemyFspRead` и синтетический реестр C. Read-порты не выполняют промежуточный commit. До категории B кандидат недоступен работодателю; до компании C отправка приглашения закрыта.
 
 `CandidatePublic.roles`, `declared_stack`, `experience_months` теперь nullable: `null` означает скрыто, `hidden_fields` перечисляет скрытые поля. Нельзя считать скрытый стаж нулевым или фильтровать по приватному значению. `verified_category` содержит текущую категорию B; ФИО, резюме и контактов в DTO нет. Публичный стек содержит только распознанные технологии. C перечитывает профиль D перед показом сохранённой подборки.
 
@@ -83,6 +83,6 @@ CI проверяет, что экспорт не меняет закоммич�
 
 `CompanyRead` расширен `owns_need(company_id, need_id)` и `owns_vacancy` для будущего P1. Безопасная ссылка из C: `/employer/invitations/new?candidate_id=<uuid>&need_id=<optional uuid>`. Компания вычисляется сервером из actor, параметры заново проверяются. FK к company/need таблицам добавляет согласованная интеграционная миграция C.
 
-Для ФСП D использует `GET /candidate/fsp`, `POST /candidate/fsp-link` с `fsp_id`, `DELETE /candidate/fsp-link` и FspRead. Подтверждение владения внешним ID делает C; детали DTO связи подтвердить при интеграции.
+Для ФСП D использует `GET /candidate/fsp`, `POST /candidate/fsp-link` с `fsp_id`, `DELETE /candidate/fsp-link` и FspRead. C проверяет owned ID текущего аккаунта в явно демонстрационном реестре; достижения серверные. Внешний реестр заменяется через `FspRegistry`; детали в [fsp.md](fsp.md).
 
 См. [контракты D](module-D.md), [матрицу требований](requirements-D.md) и [передачу/демонстрацию](handoff-D.md).

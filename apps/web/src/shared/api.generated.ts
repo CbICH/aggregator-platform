@@ -530,6 +530,145 @@ export interface paths {
         patch: operations["update_my_company_api_v1_company_patch"];
         trace?: never;
     };
+    "/api/v1/employer/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Needs */
+        get: operations["list_needs_api_v1_employer_needs_get"];
+        put?: never;
+        /** Create Need */
+        post: operations["create_need_api_v1_employer_needs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/needs/{need_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Need */
+        get: operations["get_need_api_v1_employer_needs__need_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Categories */
+        get: operations["list_categories_api_v1_employer_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/matching/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Candidates */
+        get: operations["list_candidates_api_v1_employer_matching_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search History */
+        get: operations["search_history_api_v1_employer_searches_get"];
+        put?: never;
+        /** Create Search */
+        post: operations["create_search_api_v1_employer_searches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employer/searches/{search_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Search */
+        get: operations["get_search_api_v1_employer_searches__search_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/candidate/fsp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Fsp */
+        get: operations["get_fsp_api_v1_candidate_fsp_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/candidate/fsp-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Fsp */
+        post: operations["link_fsp_api_v1_candidate_fsp_link_post"];
+        /** Unlink Fsp */
+        delete: operations["unlink_fsp_api_v1_candidate_fsp_link_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/candidate/profile.pdf": {
         parameters: {
             query?: never;
@@ -934,6 +1073,64 @@ export interface components {
              */
             target_grade: "junior" | "middle" | "senior";
         };
+        /**
+         * CandidateCard
+         * @description Публичная карточка кандидата в выдаче работодателю.
+         */
+        CandidateCard: {
+            /**
+             * Candidate Id
+             * Format: uuid
+             */
+            candidate_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Declared Stack */
+            declared_stack?: string[] | null;
+            /** Roles */
+            roles?: string[] | null;
+            /** Experience Months */
+            experience_months?: number | null;
+            /** Hidden Fields */
+            hidden_fields?: string[];
+            verified_category?: components["schemas"]["VerifiedCategory"] | null;
+            /**
+             * Specialization
+             * @enum {string}
+             */
+            specialization: "backend" | "qa";
+            /**
+             * Verified Grade
+             * @enum {string}
+             */
+            verified_grade: "junior" | "middle" | "senior";
+            /** Category Code */
+            category_code: string;
+            /** Experience Years */
+            experience_years?: number | null;
+            /** Score */
+            score: number;
+            /** Components */
+            components: {
+                [key: string]: number;
+            };
+            /** Skills */
+            skills: components["schemas"]["SkillOnCard"][];
+            /**
+             * Fsp Status
+             * @enum {string}
+             */
+            fsp_status: "not_linked" | "linked_empty" | "linked_with_data" | "unavailable";
+            /**
+             * Fsp Source
+             * @enum {string}
+             */
+            fsp_source: "demo" | "registry";
+            /** Fsp Achievements */
+            fsp_achievements?: components["schemas"]["FspAchievementEvidence"][];
+            /** Reasons */
+            reasons: components["schemas"]["ReasonCard"][];
+        };
         /** CandidateContacts */
         CandidateContacts: {
             /**
@@ -950,6 +1147,25 @@ export interface components {
              * @default
              */
             contact_method: string;
+        };
+        /**
+         * CandidateList
+         * @description Отсортированный список кандидатов для работодателя.
+         */
+        CandidateList: {
+            /** Items */
+            items: components["schemas"]["CandidateCard"][];
+            /** Total */
+            total: number;
+            /** Applied Need Id */
+            applied_need_id?: string | null;
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /** Next Offset */
+            next_offset?: number | null;
         };
         /** CandidatePublic */
         CandidatePublic: {
@@ -1033,6 +1249,28 @@ export interface components {
             /** Categories */
             categories: components["schemas"]["CatalogItem"][];
         };
+        /**
+         * CategoryCard
+         * @description Короткая справочная карточка категории с количеством кандидатов.
+         */
+        CategoryCard: {
+            /** Code */
+            code: string;
+            /**
+             * Specialization
+             * @enum {string}
+             */
+            specialization: "backend" | "qa";
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "junior" | "middle" | "senior";
+            /** Active */
+            active: boolean;
+            /** Candidate Count */
+            candidate_count: number;
+        };
         /** CategoryConfirm */
         CategoryConfirm: {
             /**
@@ -1065,6 +1303,11 @@ export interface components {
              * Format: date-time
              */
             next_change_at: string;
+        };
+        /** CategoryList */
+        CategoryList: {
+            /** Items */
+            items: components["schemas"]["CategoryCard"][];
         };
         /** CategoryState */
         CategoryState: {
@@ -1240,6 +1483,15 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** FspAchievementEvidence */
+        FspAchievementEvidence: {
+            /** Result */
+            result: string;
+            /** Event */
+            event: string;
+            /** Date */
+            date?: string | null;
+        };
         /** FspEvidence */
         FspEvidence: {
             /**
@@ -1260,6 +1512,47 @@ export interface components {
             source: "demo" | "registry";
             /** Fetched At */
             fetched_at?: string | null;
+            /** Fsp Id */
+            fsp_id?: string | null;
+            /** Achievements */
+            achievements?: components["schemas"]["FspAchievementEvidence"][];
+        };
+        /** FspLinkCommand */
+        FspLinkCommand: {
+            /** Fsp Id */
+            fsp_id: string;
+        };
+        /** FspSelf */
+        FspSelf: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_linked" | "linked_empty" | "linked_with_data" | "unavailable";
+            /**
+             * Signal
+             * @default 0
+             */
+            signal: number;
+            /**
+             * Source
+             * @default demo
+             * @enum {string}
+             */
+            source: "demo" | "registry";
+            /** Fetched At */
+            fetched_at?: string | null;
+            /** Fsp Id */
+            fsp_id?: string | null;
+            /** Achievements */
+            achievements?: components["schemas"]["FspAchievementEvidence"][];
+            /** Available Fsp Id */
+            available_fsp_id?: string | null;
+            /**
+             * Ownership Method
+             * @default verified_email
+             */
+            ownership_method: string;
         };
         /** Health */
         Health: {
@@ -1403,6 +1696,91 @@ export interface components {
         Message: {
             /** Message */
             message: string;
+        };
+        /**
+         * NeedCreate
+         * @description Тело POST /employer/needs — что присылает фронт при создании потребности.
+         */
+        NeedCreate: {
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /**
+             * Specialization
+             * @enum {string}
+             */
+            specialization: "backend" | "qa";
+            /** Grades */
+            grades: ("junior" | "middle" | "senior")[];
+            /**
+             * Declared Stack
+             * @default []
+             */
+            declared_stack: string[];
+            /** Required Skills */
+            required_skills: components["schemas"]["RequiredSkill"][];
+            /**
+             * Work Format
+             * @enum {string}
+             */
+            work_format: "remote" | "hybrid" | "office";
+            /** Salary Min */
+            salary_min?: number | null;
+            /** Salary Max */
+            salary_max?: number | null;
+        };
+        /** NeedList */
+        NeedList: {
+            /** Items */
+            items: components["schemas"]["NeedResponse"][];
+        };
+        /** NeedResponse */
+        NeedResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /**
+             * Specialization
+             * @enum {string}
+             */
+            specialization: "backend" | "qa";
+            /** Grades */
+            grades: ("junior" | "middle" | "senior")[];
+            /** Declared Stack */
+            declared_stack: string[];
+            /** Required Skills */
+            required_skills: components["schemas"]["RequiredSkill"][];
+            /**
+             * Work Format
+             * @enum {string}
+             */
+            work_format: "remote" | "hybrid" | "office";
+            /** Salary Min */
+            salary_min?: number | null;
+            /** Salary Max */
+            salary_max?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** PasswordResetConfirmBody */
         PasswordResetConfirmBody: {
@@ -1647,6 +2025,22 @@ export interface components {
             /** Limit */
             limit: number;
         };
+        /**
+         * ReasonCard
+         * @description Одна строка «почему подходит» в карточке кандидата.
+         */
+        ReasonCard: {
+            /** Code */
+            code: string;
+            /** Label */
+            label?: string | null;
+            /** Skill Id */
+            skill_id?: string | null;
+            /** Score */
+            score?: number | null;
+            /** Date */
+            date?: string | null;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             /**
@@ -1671,6 +2065,19 @@ export interface components {
             version: string;
             /** Text */
             text: string;
+        };
+        /**
+         * RequiredSkill
+         * @description Проверяемый навык с весом внутри потребности.
+         */
+        RequiredSkill: {
+            /** Id */
+            id: string;
+            /**
+             * Weight
+             * @default 1
+             */
+            weight: number;
         };
         /**
          * Role
@@ -1702,6 +2109,85 @@ export interface components {
              */
             tax_basis: "gross";
         };
+        /** SearchFilters */
+        SearchFilters: {
+            /** Need Id */
+            need_id?: string | null;
+            /** Specialization */
+            specialization?: ("backend" | "qa") | null;
+            /** Grade */
+            grade?: ("junior" | "middle" | "senior") | null;
+            /** Category Code */
+            category_code?: ("backend:junior" | "backend:middle" | "backend:senior" | "qa:junior" | "qa:middle" | "qa:senior") | null;
+            /** Stack */
+            stack?: string[];
+            /**
+             * With Fsp Only
+             * @default false
+             */
+            with_fsp_only: boolean;
+        };
+        /** SearchHistory */
+        SearchHistory: {
+            /** Items */
+            items: components["schemas"]["SearchSummary"][];
+            /** Next Offset */
+            next_offset?: number | null;
+        };
+        /** SearchResponse */
+        SearchResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            filters: components["schemas"]["SearchFilters"];
+            /** Original Total */
+            original_total: number;
+            /** Need Title */
+            need_title?: string | null;
+            /** Items */
+            items: components["schemas"]["CandidateCard"][];
+            /** Total */
+            total: number;
+            /** Applied Need Id */
+            applied_need_id?: string | null;
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /** Next Offset */
+            next_offset?: number | null;
+            /**
+             * Unavailable Count
+             * @default 0
+             */
+            unavailable_count: number;
+        };
+        /** SearchSummary */
+        SearchSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            filters: components["schemas"]["SearchFilters"];
+            /** Original Total */
+            original_total: number;
+            /** Need Title */
+            need_title?: string | null;
+        };
         /** SkillEvidence */
         SkillEvidence: {
             /** Id */
@@ -1714,6 +2200,16 @@ export interface components {
              * @constant
              */
             source: "assessment";
+        };
+        /**
+         * SkillOnCard
+         * @description Навык с баллом внутри карточки кандидата.
+         */
+        SkillOnCard: {
+            /** Id */
+            id: string;
+            /** Score */
+            score: number;
         };
         /** SurveyCreate */
         SurveyCreate: {
@@ -5044,6 +5540,1181 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyResponse"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_needs_api_v1_employer_needs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedList"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_need_api_v1_employer_needs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NeedCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedResponse"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_need_api_v1_employer_needs__need_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                need_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedResponse"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_categories_api_v1_employer_categories_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryList"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_candidates_api_v1_employer_matching_candidates_get: {
+        parameters: {
+            query?: {
+                specialization?: ("backend" | "qa") | null;
+                grade?: ("junior" | "middle" | "senior") | null;
+                category_code?: ("backend:junior" | "backend:middle" | "backend:senior" | "qa:junior" | "qa:middle" | "qa:senior") | null;
+                stack?: string[] | null;
+                with_fsp_only?: boolean;
+                need_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateList"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    search_history_api_v1_employer_searches_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchHistory"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_search_api_v1_employer_searches_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchFilters"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_search_api_v1_employer_searches__search_id__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                search_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_fsp_api_v1_candidate_fsp_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FspSelf"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    link_fsp_api_v1_candidate_fsp_link_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FspLinkCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FspSelf"];
+                };
+            };
+            /** @description Некорректная команда */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Требуется вход */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Действие запрещено */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Объект недоступен */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Конфликт состояния */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Ошибка полей */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Лимит запросов */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Внутренняя ошибка */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Зависимость временно недоступна */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    unlink_fsp_api_v1_candidate_fsp_link_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for authenticated mutations; copy signal_csrf cookie */
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FspSelf"];
                 };
             };
             /** @description Некорректная команда */

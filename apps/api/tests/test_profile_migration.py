@@ -7,7 +7,17 @@ from sqlalchemy import create_engine, inspect, text
 
 
 @pytest.mark.parametrize(
-    "starting_revision", ["0001_core", "0003_d_snapshots", "0009_matching_companies"]
+    "starting_revision",
+    [
+        "0001_core",
+        "0003_d_snapshots",
+        "0009_matching_companies",
+        "0010_matching_needs",
+        "0011_assessment_survey_index",
+        "0012_merge_matching_needs",
+        "0012_password_resets",
+        "0013_fsp_searches",
+    ],
 )
 def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision):
     api_root = Path(__file__).resolve().parents[1]
@@ -42,7 +52,12 @@ def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision
                     "INSERT INTO candidate_profiles (candidate_id, full_name, alias, roles, experience_months, declared_stack, soft_skills, resume_text, version, created_at, updated_at) VALUES ('10000000-0000-4000-8000-000000000001', 'Миграционный кандидат', 'Кандидат', '[]', 0, '[]', '[]', 'Сохранённое резюме', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
                 )
             )
-    if starting_revision == "0009_matching_companies":
+    if starting_revision in {
+        "0009_matching_companies",
+        "0010_matching_needs",
+        "0012_merge_matching_needs",
+        "0013_fsp_searches",
+    }:
         with engine.begin() as db:
             db.execute(
                 text(
@@ -59,6 +74,39 @@ def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision
                     "UPDATE users SET company_id = '30000000-0000-4000-8000-000000000001' WHERE id = '10000000-0000-4000-8000-000000000001'"
                 )
             )
+    if starting_revision in {
+        "0010_matching_needs",
+        "0012_merge_matching_needs",
+        "0013_fsp_searches",
+    }:
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO employer_needs (id, company_id, title, description, specialization, grades, declared_stack, required_skills, work_format, salary_min, salary_max, created_at, updated_at) VALUES ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'Сохранённая потребность', 'Разработка API заказов', 'backend', '[\"middle\"]', '[\"python\"]', :skills, 'remote', 100000, 150000, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+                ),
+                {"skills": '[{"id":"api.idempotency","weight":2}]'},
+            )
+    if starting_revision == "0012_password_resets":
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO password_resets (token_hash, user_id, expires_at, created_at) VALUES (:token_hash, '10000000-0000-4000-8000-000000000001', '2099-01-01 00:00:00', CURRENT_TIMESTAMP)"
+                ),
+                {"token_hash": "a" * 64},
+            )
+    if starting_revision == "0013_fsp_searches":
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO fsp_links (candidate_id, fsp_id, linked_at) VALUES ('10000000-0000-4000-8000-000000000001', 'demo-migration', CURRENT_TIMESTAMP)"
+                )
+            )
+            db.execute(
+                text(
+                    "INSERT INTO search_snapshots (id, company_id, filters, candidate_ids, created_at) VALUES ('50000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '{}', :candidate_ids, CURRENT_TIMESTAMP)"
+                ),
+                {"candidate_ids": '["10000000-0000-4000-8000-000000000001"]'},
+            )
     alembic("upgrade", "head")
     alembic("check")
     assert {
@@ -71,22 +119,48 @@ def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision
         "contact_grants",
         "surveys",
         "companies",
+        "employer_needs",
+        "fsp_links",
+        "search_snapshots",
         "verified_categories",
+        "password_resets",
     }.issubset(inspect(engine).get_table_names())
     with engine.connect() as db:
         assert db.scalar(text("SELECT email FROM users")) == "migration@example.com"
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0012_password_resets"
+        assert (
+            db.scalar(text("SELECT version_num FROM alembic_version")) == "0014_merge_final_heads"
+        )
         if starting_revision == "0003_d_snapshots":
             assert (
                 db.scalar(text("SELECT resume_text FROM candidate_profiles"))
                 == "Сохранённое резюме"
             )
-        if starting_revision == "0009_matching_companies":
+        if starting_revision in {
+            "0009_matching_companies",
+            "0010_matching_needs",
+            "0012_merge_matching_needs",
+            "0013_fsp_searches",
+        }:
             assert db.scalar(text("SELECT specialization FROM surveys")) == "backend"
             assert db.scalar(text("SELECT name FROM companies")) == "Сохранённая компания"
             assert (
                 db.scalar(text("SELECT company_id FROM users"))
                 == "30000000-0000-4000-8000-000000000001"
+            )
+        if starting_revision in {
+            "0010_matching_needs",
+            "0012_merge_matching_needs",
+            "0013_fsp_searches",
+        }:
+            assert db.scalar(text("SELECT title FROM employer_needs")) == "Сохранённая потребность"
+            assert db.scalar(text("SELECT salary_min FROM employer_needs")) == 100000
+        if starting_revision == "0012_password_resets":
+            assert db.scalar(text("SELECT token_hash FROM password_resets")) == "a" * 64
+        if starting_revision == "0013_fsp_searches":
+            assert db.scalar(text("SELECT fsp_id FROM fsp_links")) == "demo-migration"
+            assert (
+                db.scalar(text("SELECT candidate_ids FROM search_snapshots"))
+                == '["10000000-0000-4000-8000-000000000001"]'
             )
     alembic("downgrade", "0001_core")
     assert "candidate_profiles" not in inspect(engine).get_table_names()

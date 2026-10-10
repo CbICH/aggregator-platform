@@ -1,23 +1,24 @@
 # Матрица требований D
 
-Срез 8 октября 2026. Тесты названы по актуальным файлам в `apps/api/tests/`. Изолированный браузер D использует контролируемые порты; `tests/bcd-integration.spec.ts` проверяет настоящий B, компанию C и D на Docker-стенде.
+Срез 10 октября 2026. Пути тестов относятся к `apps/api/tests/` и `apps/web/tests/`. Сквозной браузер использует реальные A/B/C/D API на Docker/PostgreSQL и явно синтетический FSP-реестр.
 
-| ID | Поведение | Авторитетная проверка |
+| ID | Поведение | Проверка |
 |---|---|---|
-| R03 | Все ручные поля профиля/контактов сохраняются | `test_profiles.py`, `tests/profile.spec.ts` |
-| R04 | Стандартный PDF, кириллица, длинный текст, только владелец | `test_profile_pdf.py`; скачивание в `tests/d/invitations.spec.ts` |
-| R13 | Входящие, просмотр, принять/отклонить | `test_full_invitation_flow_and_snapshot`, `test_owned_need_and_csrf`; D E2E |
-| R15 | Согласия/видимость влияют на live API | `test_privacy.py`, отзыв grants и processing, D E2E |
-| R18 | Кандидат читает/изменяет только свои данные | `test_profiles.py`, `test_foreign_candidate_company_and_employer_decision_are_denied`, PDF guards |
-| R23 | Предложение без вакансии | `test_full_invitation_flow_and_snapshot`, `test_invalid_refs_and_fields`; D E2E |
-| R25 | Контакты только принявшей компании, отзыв без восстановления повтором | `test_revoked_contact_grant_is_not_resurrected_by_accept_replay`, foreign-company test, D E2E |
-| R28 | Положительный целый RUB-диапазон и min≤max | `test_invalid_salary_rejected_before_storage`, общие salary contract tests |
-| R29 | Company/описание/зарплата/связь до общения; immutable snapshot | `test_full_invitation_flow_and_snapshot`; D E2E |
-| R30 | Статусы обеих сторон, повторы, конкуренция | `test_concurrent_decisions_have_one_final_status_and_one_event`, repeated view/decision, D E2E |
-| R41 | A auth/CSRF/roles + владение D, приватный audit, лимиты | весь `test_auth.py`, `test_d_audit.py`, private DTO/PDF tests |
+| R03 | Все ручные поля профиля/контактов сохраняются | `test_profiles.py`, `profile.spec.ts` |
+| R04 | Стандартный PDF, кириллица, длинный текст, только владелец | `test_profile_pdf.py`, `d/invitations.spec.ts` |
+| R13 | Входящие, просмотр, принять/отклонить | `test_invitations.py`, D E2E |
+| R15 | Согласия/видимость меняют live API и старые подборки | `test_privacy.py`, `test_matching.py`, BCD E2E |
+| R16 / D09 | Собственный ФСП ID, четыре состояния и история | `test_fsp.py`, `bcd-integration.spec.ts`; demo-source явно обозначен |
+| R18 | Кандидат читает/изменяет только свои данные | `test_profiles.py`, foreign candidate/PDF guards |
+| R23 | Предложение без вакансии | `test_invitations.py`, D и BCD E2E |
+| R25 | Контакты только принявшей компании; отзыв без восстановления повтором | `test_contact_access.py`, гонки в `test_d_concurrency.py`, D E2E |
+| R28 | Положительный целый RUB-диапазон, min≤max | `test_invitations.py`, `test_d_contracts.py` |
+| R29 | Название компании, описание, зарплата, связь до общения; immutable snapshot | `test_invitations.py`, BCD E2E |
+| R30 | Статусы обеих сторон, повторы, конкуренция | `test_d_concurrency.py`, D E2E |
+| R41 | Auth/CSRF/roles, владение D, приватный audit, лимиты | `test_auth.py`, `test_d_audit.py`, DTO/PDF tests |
+| C/D: R20/R22/R26 | Потребность, пять фильтров, ранжирование по реальным B/D | `test_matching.py`, BCD E2E |
+| C/D: R27 | Уточнение и возврат к исходной подборке с актуальной приватностью | `test_matching.py`, BCD E2E |
 
-## Границы доказательства
+Проверено 149 API-тестов на каждой СУБД, шесть миграционных исходных состояний, production Chromium-сценарии и отдельный D E2E. История сохраняет membership, но перечитывает актуальные безопасные поля и результаты. Переход `/employer/invitations/new?candidate_id=<uuid>&need_id=<optional uuid>` предзаполняет условия; API заново проверяет кандидата и владельца потребности.
 
-Готовы исходники, API/UI D, миграции, синтетические данные и проверки SQLite/PostgreSQL. В `codex/integration-bcd` подключены B из vadim и компания C из Ananas. `test_bcd_integration.py` и `tests/bcd-integration.spec.ts` подтверждают реальный тест/категорию B, компанию C, публикацию, приглашение, контакты и отзыв D. Полный G1/G2 ещё требует потребности/ранжированного подбора и связи ФСП C; в Ananas этих реализаций нет. Удалённый CI и независимый запуск объединённого кода пока не подтверждены.
-
-Ссылку для формы C передаёт как `/employer/invitations/new?candidate_id=<uuid>&need_id=<optional uuid>`. D повторно проверяет кандидата и принадлежность потребности; параметры ссылки не дают права доступа.
+G1 подтверждён сквозным путём регистрации → тестирования → live-подбора → приглашения → контактов. Готовность общего G2 по всей команде нельзя вывести только из D: внешний пилот/валидация B и финальные командные материалы проверяются отдельно. Изолированный D E2E использует контролируемые B/C ports и дополняет основной production-сценарий.

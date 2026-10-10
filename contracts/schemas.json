@@ -421,6 +421,37 @@
       "title": "EmployerInvitationContext",
       "type": "object"
     },
+    "FspAchievementEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "title": "Result",
+          "type": "string"
+        },
+        "event": {
+          "title": "Event",
+          "type": "string"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        }
+      },
+      "required": [
+        "result",
+        "event"
+      ],
+      "title": "FspAchievementEvidence",
+      "type": "object"
+    },
     "FspEvidence": {
       "additionalProperties": false,
       "properties": {
@@ -462,6 +493,25 @@
           ],
           "default": null,
           "title": "Fetched At"
+        },
+        "fsp_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fsp Id"
+        },
+        "achievements": {
+          "items": {
+            "$ref": "#/$defs/FspAchievementEvidence"
+          },
+          "title": "Achievements",
+          "type": "array"
         }
       },
       "required": [

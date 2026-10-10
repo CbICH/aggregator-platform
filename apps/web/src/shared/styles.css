@@ -1,12 +1,12 @@
 :root { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #272333; background: #faf9fc; font-synthesis: none; text-rendering: optimizeLegibility; --purple: #591784; --line: #e5dfeb; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button, a, input, summary { -webkit-tap-highlight-color: transparent; }
 a { color: var(--purple); text-underline-offset: 3px; }
 button { cursor: pointer; }
 button:disabled { opacity: .55; cursor: wait; }
-button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #b691d3; outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #b691d3; outline-offset: 3px; }
 h1, h2, p { margin-top: 0; }
 h1 { letter-spacing: -.04em; line-height: 1.15; }
 p { line-height: 1.65; }
@@ -35,7 +35,10 @@ nav { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .role-picker .selected { color: var(--purple); background: white; box-shadow: 0 2px 8px #4320540b; }
 .role-picker input { accent-color: var(--purple); margin-right: 6px; }
 .field { display: flex; flex-direction: column; gap: 9px; margin: 20px 0 8px; font-size: 13px; font-weight: 600; }
-.field input { background: #fff; border: 1px solid #dcd5e5; border-radius: 9px; padding: 13px 14px; width: 100%; font-weight: 400; color: #272333; }
+.field input, .field select, .field textarea { background: #fff; border: 1px solid #dcd5e5; border-radius: 9px; padding: 13px 14px; width: 100%; min-width: 0; font-weight: 400; color: #272333; }
+.field textarea { resize: vertical; }
+.checkbox-line { display: flex; align-items: center; gap: 9px; font-size: 13px; line-height: 1.5; margin: 20px 0 0; }
+.checkbox-line input { flex-shrink: 0; accent-color: var(--purple); }
 .field input::placeholder { color: #978e9f; }
 .hint { margin: 7px 0 19px; color: #7c7385; font-size: 11px; }
 .consent { display: flex; gap: 10px; align-items: start; font-size: 12px; line-height: 1.6; margin: 20px 0 10px; }
