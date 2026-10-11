@@ -68,6 +68,11 @@
           ],
           "default": null,
           "title": "Phone"
+        },
+        "contact_method": {
+          "default": "",
+          "title": "Contact Method",
+          "type": "string"
         }
       },
       "required": [
@@ -89,32 +94,197 @@
           "type": "string"
         },
         "declared_stack": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Declared Stack"
+        },
+        "roles": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Roles"
+        },
+        "experience_months": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Experience Months"
+        },
+        "hidden_fields": {
           "items": {
             "type": "string"
           },
-          "title": "Declared Stack",
+          "title": "Hidden Fields",
           "type": "array"
+        },
+        "verified_category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerifiedCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "candidate_id",
+        "display_name"
+      ],
+      "title": "CandidatePublic",
+      "type": "object"
+    },
+    "CandidateSelf": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "saved": {
+          "title": "Saved",
+          "type": "boolean"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "full_name": {
+          "title": "Full Name",
+          "type": "string"
+        },
+        "alias": {
+          "title": "Alias",
+          "type": "string"
         },
         "roles": {
           "items": {
+            "enum": [
+              "backend",
+              "frontend",
+              "fullstack",
+              "qa",
+              "devops",
+              "data",
+              "mobile",
+              "other"
+            ],
             "type": "string"
           },
           "title": "Roles",
           "type": "array"
         },
         "experience_months": {
-          "default": 0,
-          "minimum": 0,
           "title": "Experience Months",
           "type": "integer"
+        },
+        "declared_stack": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Declared Stack",
+          "type": "array"
+        },
+        "soft_skills": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Soft Skills",
+          "type": "array"
+        },
+        "resume_text": {
+          "title": "Resume Text",
+          "type": "string"
+        },
+        "contacts": {
+          "$ref": "#/$defs/ProfileContactDetails"
+        },
+        "profile_complete": {
+          "title": "Profile Complete",
+          "type": "boolean"
+        },
+        "processing_consent_active": {
+          "title": "Processing Consent Active",
+          "type": "boolean"
+        },
+        "verified_category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerifiedCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fsp": {
+          "$ref": "#/$defs/FspEvidence"
+        },
+        "privacy": {
+          "$ref": "#/$defs/ProfilePrivacy"
+        },
+        "updated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Updated At"
         }
       },
       "required": [
         "candidate_id",
-        "display_name",
-        "declared_stack"
+        "saved",
+        "version",
+        "full_name",
+        "alias",
+        "roles",
+        "experience_months",
+        "declared_stack",
+        "soft_skills",
+        "resume_text",
+        "contacts",
+        "profile_complete",
+        "processing_consent_active",
+        "fsp",
+        "privacy"
       ],
-      "title": "CandidatePublic",
+      "title": "CandidateSelf",
       "type": "object"
     },
     "CompanySummary": {
@@ -140,6 +310,146 @@
         "contact"
       ],
       "title": "CompanySummary",
+      "type": "object"
+    },
+    "ConsentCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "consent_type": {
+          "enum": [
+            "publication",
+            "contact_transfer",
+            "profile_processing"
+          ],
+          "title": "Consent Type",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "accept",
+            "revoke"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_version",
+        "consent_type",
+        "action",
+        "version"
+      ],
+      "title": "ConsentCommand",
+      "type": "object"
+    },
+    "ConsentReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "consent_type": {
+          "enum": [
+            "publication",
+            "contact_transfer",
+            "profile_processing"
+          ],
+          "title": "Consent Type",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        },
+        "revoked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revoked At"
+        }
+      },
+      "required": [
+        "consent_type",
+        "version",
+        "accepted_at"
+      ],
+      "title": "ConsentReceipt",
+      "type": "object"
+    },
+    "EmployerInvitationContext": {
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "format": "uuid",
+          "title": "Company Id",
+          "type": "string"
+        },
+        "company_name": {
+          "title": "Company Name",
+          "type": "string"
+        },
+        "company_contact": {
+          "title": "Company Contact",
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "company_name",
+        "company_contact"
+      ],
+      "title": "EmployerInvitationContext",
+      "type": "object"
+    },
+    "FspAchievementEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "title": "Result",
+          "type": "string"
+        },
+        "event": {
+          "title": "Event",
+          "type": "string"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        }
+      },
+      "required": [
+        "result",
+        "event"
+      ],
+      "title": "FspAchievementEvidence",
       "type": "object"
     },
     "FspEvidence": {
@@ -183,12 +493,895 @@
           ],
           "default": null,
           "title": "Fetched At"
+        },
+        "fsp_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fsp Id"
+        },
+        "achievements": {
+          "items": {
+            "$ref": "#/$defs/FspAchievementEvidence"
+          },
+          "title": "Achievements",
+          "type": "array"
         }
       },
       "required": [
         "status"
       ],
       "title": "FspEvidence",
+      "type": "object"
+    },
+    "InvitationCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "need_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Need Id"
+        },
+        "vacancy_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vacancy Id"
+        },
+        "description": {
+          "maxLength": 6000,
+          "minLength": 20,
+          "title": "Description",
+          "type": "string"
+        },
+        "salary": {
+          "$ref": "#/$defs/Salary"
+        },
+        "company_contact": {
+          "maxLength": 300,
+          "minLength": 3,
+          "title": "Company Contact",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "description",
+        "salary",
+        "company_contact"
+      ],
+      "title": "InvitationCreate",
+      "type": "object"
+    },
+    "InvitationDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "accept",
+            "decline"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "contact_consent_accepted": {
+          "default": false,
+          "title": "Contact Consent Accepted",
+          "type": "boolean"
+        },
+        "contact_consent_version": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact Consent Version"
+        }
+      },
+      "required": [
+        "action",
+        "expected_version"
+      ],
+      "title": "InvitationDecision",
+      "type": "object"
+    },
+    "InvitationEventResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "old_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InvitationStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "new_status": {
+          "$ref": "#/$defs/InvitationStatus"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "new_status",
+        "created_at"
+      ],
+      "title": "InvitationEventResponse",
+      "type": "object"
+    },
+    "InvitationEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "skill_id": {
+          "title": "Skill Id",
+          "type": "string"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "assessment_id": {
+          "format": "uuid",
+          "title": "Assessment Id",
+          "type": "string"
+        },
+        "assessment_version": {
+          "title": "Assessment Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "skill_id",
+        "score",
+        "assessment_id",
+        "assessment_version"
+      ],
+      "title": "InvitationEvidence",
+      "type": "object"
+    },
+    "InvitationHistory": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/InvitationEventResponse"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "InvitationHistory",
+      "type": "object"
+    },
+    "InvitationListResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/InvitationResponse"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        },
+        "limit": {
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "limit"
+      ],
+      "title": "InvitationListResponse",
+      "type": "object"
+    },
+    "InvitationResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "invitation_id": {
+          "format": "uuid",
+          "title": "Invitation Id",
+          "type": "string"
+        },
+        "candidate_id": {
+          "format": "uuid",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "candidate_alias": {
+          "title": "Candidate Alias",
+          "type": "string"
+        },
+        "company_id": {
+          "format": "uuid",
+          "title": "Company Id",
+          "type": "string"
+        },
+        "company_name": {
+          "title": "Company Name",
+          "type": "string"
+        },
+        "need_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Need Id"
+        },
+        "vacancy_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vacancy Id"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "salary": {
+          "$ref": "#/$defs/Salary"
+        },
+        "company_contact": {
+          "title": "Company Contact",
+          "type": "string"
+        },
+        "category_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category Code"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/InvitationEvidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/InvitationStatus"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "viewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Viewed At"
+        },
+        "decided_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decided At"
+        },
+        "contact_access_active": {
+          "title": "Contact Access Active",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "invitation_id",
+        "candidate_id",
+        "candidate_alias",
+        "company_id",
+        "company_name",
+        "description",
+        "salary",
+        "company_contact",
+        "evidence",
+        "status",
+        "version",
+        "created_at",
+        "contact_access_active"
+      ],
+      "title": "InvitationResponse",
+      "type": "object"
+    },
+    "InvitationStatus": {
+      "enum": [
+        "sent",
+        "viewed",
+        "accepted",
+        "declined"
+      ],
+      "title": "InvitationStatus",
+      "type": "string"
+    },
+    "PrivacyResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "publication_enabled": {
+          "default": false,
+          "title": "Publication Enabled",
+          "type": "boolean"
+        },
+        "discoverable": {
+          "default": false,
+          "title": "Discoverable",
+          "type": "boolean"
+        },
+        "visible_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Visible Fields",
+          "type": "array"
+        },
+        "publication_consent_active": {
+          "default": false,
+          "title": "Publication Consent Active",
+          "type": "boolean"
+        },
+        "processing_consent_active": {
+          "default": false,
+          "title": "Processing Consent Active",
+          "type": "boolean"
+        },
+        "blocked_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blocked Reasons",
+          "type": "array"
+        },
+        "version": {
+          "default": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "consents": {
+          "items": {
+            "$ref": "#/$defs/ConsentReceipt"
+          },
+          "title": "Consents",
+          "type": "array"
+        },
+        "publication_policy": {
+          "$ref": "#/$defs/ProfileProcessingPolicy"
+        },
+        "contact_policy": {
+          "$ref": "#/$defs/ProfileProcessingPolicy"
+        }
+      },
+      "required": [
+        "consents",
+        "publication_policy",
+        "contact_policy"
+      ],
+      "title": "PrivacyResponse",
+      "type": "object"
+    },
+    "PrivacyUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "minimum": 1,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "visible_fields": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "roles",
+                  "declared_stack",
+                  "experience_months"
+                ],
+                "type": "string"
+              },
+              "maxItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visible Fields"
+        },
+        "publication_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Enabled"
+        },
+        "publication_consent_accepted": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Consent Accepted"
+        },
+        "publication_consent_version": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Consent Version"
+        },
+        "revoke_contact_access": {
+          "default": false,
+          "title": "Revoke Contact Access",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "expected_version"
+      ],
+      "title": "PrivacyUpdate",
+      "type": "object"
+    },
+    "ProfileContactDetails": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "format": "email",
+              "maxLength": 254,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "minLength": 7,
+              "pattern": "^\\+?[0-9 ()-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
+        },
+        "contact_method": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Contact Method",
+          "type": "string"
+        }
+      },
+      "title": "ProfileContactDetails",
+      "type": "object"
+    },
+    "ProfileContactPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "format": "email",
+              "maxLength": 254,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "minLength": 7,
+              "pattern": "^\\+?[0-9 ()-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
+        },
+        "contact_method": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact Method"
+        }
+      },
+      "title": "ProfileContactPatch",
+      "type": "object"
+    },
+    "ProfilePatch": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "full_name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Full Name"
+        },
+        "roles": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "backend",
+                  "frontend",
+                  "fullstack",
+                  "qa",
+                  "devops",
+                  "data",
+                  "mobile",
+                  "other"
+                ],
+                "type": "string"
+              },
+              "maxItems": 8,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Roles"
+        },
+        "experience_months": {
+          "anyOf": [
+            {
+              "maximum": 1200,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Experience Months"
+        },
+        "declared_stack": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Declared Stack"
+        },
+        "soft_skills": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Skills"
+        },
+        "resume_text": {
+          "anyOf": [
+            {
+              "maxLength": 12000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resume Text"
+        },
+        "contacts": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProfileContactPatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "processing_consent_accepted": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Processing Consent Accepted"
+        },
+        "processing_consent_version": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Processing Consent Version"
+        }
+      },
+      "required": [
+        "expected_version"
+      ],
+      "title": "ProfilePatch",
+      "type": "object"
+    },
+    "ProfilePrivacy": {
+      "additionalProperties": false,
+      "properties": {
+        "publication_enabled": {
+          "default": false,
+          "title": "Publication Enabled",
+          "type": "boolean"
+        },
+        "discoverable": {
+          "default": false,
+          "title": "Discoverable",
+          "type": "boolean"
+        },
+        "visible_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Visible Fields",
+          "type": "array"
+        },
+        "publication_consent_active": {
+          "default": false,
+          "title": "Publication Consent Active",
+          "type": "boolean"
+        },
+        "processing_consent_active": {
+          "default": false,
+          "title": "Processing Consent Active",
+          "type": "boolean"
+        },
+        "blocked_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blocked Reasons",
+          "type": "array"
+        },
+        "version": {
+          "default": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "title": "ProfilePrivacy",
+      "type": "object"
+    },
+    "ProfileProcessingPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "text"
+      ],
+      "title": "ProfileProcessingPolicy",
+      "type": "object"
+    },
+    "PublicProfileList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/CandidatePublic"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        },
+        "limit": {
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "limit"
+      ],
+      "title": "PublicProfileList",
       "type": "object"
     },
     "Role": {
@@ -204,11 +1397,13 @@
       "properties": {
         "min": {
           "exclusiveMinimum": 0,
+          "maximum": 2147483647,
           "title": "Min",
           "type": "integer"
         },
         "max": {
           "exclusiveMinimum": 0,
+          "maximum": 2147483647,
           "title": "Max",
           "type": "integer"
         },

@@ -29,9 +29,14 @@ services:
       DATABASE_URL: postgresql+psycopg://signal:${POSTGRES_PASSWORD:-signal-local-only}@db:5432/signal
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8080}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-      SMTP_FROM: noreply@signal.local
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_FROM: ${SMTP_FROM:-noreply@signal.local}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+      SMTP_SSL: ${SMTP_SSL:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      FSP_REGISTRY_AVAILABLE: ${FSP_REGISTRY_AVAILABLE:-true}
     depends_on:
       db:
         condition: service_healthy

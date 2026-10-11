@@ -1,0 +1,16 @@
+{
+  "status": "not_measured",
+  "collection_dates": [],
+  "template_versions": {
+    "form_a": "assessment-v1",
+    "form_b": "assessment-v1"
+  },
+  "manual_review": {
+    "completed_before_automatic_scores": false,
+    "reviewer_count": 0,
+    "method": "Заполнить до начала пилота: независимый эксперт либо два участника команды."
+  },
+  "excluded_participant_codes": [],
+  "exclusion_reasons": {},
+  "notes": "Пилот с людьми не проводился. Не заменять этот статус синтетическими данными."
+}

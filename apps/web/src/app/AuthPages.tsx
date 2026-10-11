@@ -63,6 +63,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         <button className="button primary wide" disabled={busy || (register && !policy)}>{busy ? 'Подождите…' : register ? 'Создать аккаунт' : 'Войти'}</button>
       </form>
       <p className="auth-switch">{register ? 'Уже есть аккаунт?' : 'Первый раз здесь?'} <Link to={register ? '/login' : '/register'}>{register ? 'Войти' : 'Зарегистрироваться'}</Link></p>
+      {!register && <p className="auth-switch">Забыли пароль? <Link to="/password-reset">Восстановить доступ</Link></p>}
     </section>
   </main>;
 }

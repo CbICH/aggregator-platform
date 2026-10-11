@@ -1,0 +1,169 @@
+import os
+import subprocess
+from pathlib import Path
+
+import pytest
+from sqlalchemy import create_engine, inspect, text
+
+
+@pytest.mark.parametrize(
+    "starting_revision",
+    [
+        "0001_core",
+        "0003_d_snapshots",
+        "0009_matching_companies",
+        "0010_matching_needs",
+        "0011_assessment_survey_index",
+        "0012_merge_matching_needs",
+        "0012_password_resets",
+        "0013_fsp_searches",
+    ],
+)
+def test_migration_preserves_core_and_matches_models(tmp_path, starting_revision):
+    api_root = Path(__file__).resolve().parents[1]
+    database_url = f"sqlite:///{tmp_path / 'migration.db'}"
+    env = {**os.environ, "DATABASE_URL": database_url}
+    env.pop("PYTHONPATH", None)
+
+    def alembic(*args):
+        result = subprocess.run(
+            [os.sys.executable, "-m", "alembic", *args],
+            cwd=api_root,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+
+    alembic("upgrade", "0001_core")
+    engine = create_engine(database_url)
+    with engine.begin() as db:
+        db.execute(
+            text(
+                "INSERT INTO users (id, email, password_hash, role, email_verified, created_at) VALUES ('10000000-0000-4000-8000-000000000001', 'migration@example.com', 'test-hash', 'candidate', 0, CURRENT_TIMESTAMP)"
+            )
+        )
+    if starting_revision != "0001_core":
+        alembic("upgrade", starting_revision)
+    if starting_revision == "0003_d_snapshots":
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO candidate_profiles (candidate_id, full_name, alias, roles, experience_months, declared_stack, soft_skills, resume_text, version, created_at, updated_at) VALUES ('10000000-0000-4000-8000-000000000001', 'Миграционный кандидат', 'Кандидат', '[]', 0, '[]', '[]', 'Сохранённое резюме', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+                )
+            )
+    if starting_revision in {
+        "0009_matching_companies",
+        "0010_matching_needs",
+        "0012_merge_matching_needs",
+        "0013_fsp_searches",
+    }:
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO surveys (id, candidate_id, industry, specialization, declared_grade, roles, experience_months, catalog_version, created_at) VALUES ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'ИТ', 'backend', 'middle', '[\"Backend developer\"]', 24, 'v1', CURRENT_TIMESTAMP)"
+                )
+            )
+            db.execute(
+                text(
+                    "INSERT INTO companies (id, owner_user_id, name, description, industry, city, contact_name, contact_email, created_at, updated_at) VALUES ('30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Сохранённая компания', 'Миграционный профиль компании', 'ИТ', 'Москва', 'Руководитель', 'hr@example.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+                )
+            )
+            db.execute(
+                text(
+                    "UPDATE users SET company_id = '30000000-0000-4000-8000-000000000001' WHERE id = '10000000-0000-4000-8000-000000000001'"
+                )
+            )
+    if starting_revision in {
+        "0010_matching_needs",
+        "0012_merge_matching_needs",
+        "0013_fsp_searches",
+    }:
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO employer_needs (id, company_id, title, description, specialization, grades, declared_stack, required_skills, work_format, salary_min, salary_max, created_at, updated_at) VALUES ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'Сохранённая потребность', 'Разработка API заказов', 'backend', '[\"middle\"]', '[\"python\"]', :skills, 'remote', 100000, 150000, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+                ),
+                {"skills": '[{"id":"api.idempotency","weight":2}]'},
+            )
+    if starting_revision == "0012_password_resets":
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO password_resets (token_hash, user_id, expires_at, created_at) VALUES (:token_hash, '10000000-0000-4000-8000-000000000001', '2099-01-01 00:00:00', CURRENT_TIMESTAMP)"
+                ),
+                {"token_hash": "a" * 64},
+            )
+    if starting_revision == "0013_fsp_searches":
+        with engine.begin() as db:
+            db.execute(
+                text(
+                    "INSERT INTO fsp_links (candidate_id, fsp_id, linked_at) VALUES ('10000000-0000-4000-8000-000000000001', 'demo-migration', CURRENT_TIMESTAMP)"
+                )
+            )
+            db.execute(
+                text(
+                    "INSERT INTO search_snapshots (id, company_id, filters, candidate_ids, created_at) VALUES ('50000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '{}', :candidate_ids, CURRENT_TIMESTAMP)"
+                ),
+                {"candidate_ids": '["10000000-0000-4000-8000-000000000001"]'},
+            )
+    alembic("upgrade", "head")
+    alembic("check")
+    assert {
+        "candidate_profiles",
+        "candidate_contacts",
+        "visibility_settings",
+        "consents",
+        "invitations",
+        "invitation_events",
+        "contact_grants",
+        "surveys",
+        "companies",
+        "employer_needs",
+        "fsp_links",
+        "search_snapshots",
+        "verified_categories",
+        "password_resets",
+    }.issubset(inspect(engine).get_table_names())
+    with engine.connect() as db:
+        assert db.scalar(text("SELECT email FROM users")) == "migration@example.com"
+        assert (
+            db.scalar(text("SELECT version_num FROM alembic_version")) == "0014_merge_final_heads"
+        )
+        if starting_revision == "0003_d_snapshots":
+            assert (
+                db.scalar(text("SELECT resume_text FROM candidate_profiles"))
+                == "Сохранённое резюме"
+            )
+        if starting_revision in {
+            "0009_matching_companies",
+            "0010_matching_needs",
+            "0012_merge_matching_needs",
+            "0013_fsp_searches",
+        }:
+            assert db.scalar(text("SELECT specialization FROM surveys")) == "backend"
+            assert db.scalar(text("SELECT name FROM companies")) == "Сохранённая компания"
+            assert (
+                db.scalar(text("SELECT company_id FROM users"))
+                == "30000000-0000-4000-8000-000000000001"
+            )
+        if starting_revision in {
+            "0010_matching_needs",
+            "0012_merge_matching_needs",
+            "0013_fsp_searches",
+        }:
+            assert db.scalar(text("SELECT title FROM employer_needs")) == "Сохранённая потребность"
+            assert db.scalar(text("SELECT salary_min FROM employer_needs")) == 100000
+        if starting_revision == "0012_password_resets":
+            assert db.scalar(text("SELECT token_hash FROM password_resets")) == "a" * 64
+        if starting_revision == "0013_fsp_searches":
+            assert db.scalar(text("SELECT fsp_id FROM fsp_links")) == "demo-migration"
+            assert (
+                db.scalar(text("SELECT candidate_ids FROM search_snapshots"))
+                == '["10000000-0000-4000-8000-000000000001"]'
+            )
+    alembic("downgrade", "0001_core")
+    assert "candidate_profiles" not in inspect(engine).get_table_names()
+    with engine.connect() as db:
+        assert db.scalar(text("SELECT email FROM users")) == "migration@example.com"
+    engine.dispose()

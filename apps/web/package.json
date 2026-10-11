@@ -12,7 +12,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "api:types": "openapi-typescript ../../contracts/openapi.json -o src/shared/api.generated.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:d": "playwright test -c playwright.d.config.ts"
   },
   "dependencies": {
     "react": "19.3.0",
